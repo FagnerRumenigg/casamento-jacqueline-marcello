@@ -1,19 +1,27 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-
+import { computed, ref } from 'vue';
 import type { SealStyle } from '../../types/seal';
-import Button from '../ui/Button.vue';
 import Card from '../ui/Card.vue';
 import Input from '../ui/Input.vue';
 import Select from '../ui/Select.vue';
 import Textarea from '../ui/Textarea.vue';
+import { gifts } from '../../data/gifts';
 
+// MODELS
 const guestName = defineModel<string>('guestName', { default: '' });
 const message = defineModel<string>('message', { default: '' });
 const styleId = defineModel<string>('styleId', { default: '' });
+
 const backgroundColor = defineModel<string>('backgroundColor', {
   default: '#fff6d9',
 });
+const backgroundImage = defineModel<string>('backgroundImage', {
+  default: '',
+});
+const backgroundMode = defineModel<'color' | 'image'>('backgroundMode', {
+  default: 'color',
+});
+
 const textColor = defineModel<string>('textColor', { default: '#2f2500' });
 const fontFamily = defineModel<string>('fontFamily', {
   default: "'Noto Serif', serif",
@@ -30,16 +38,40 @@ const emit = defineEmits<{
   download: [];
 }>();
 
+// 🎯 opções de estilo
 const styleOptions = computed(() =>
-  props.styles.map((style) => ({ label: style.label, value: style.id })),
+  props.styles.map((style) => ({
+    label: style.label,
+    value: style.id,
+  })),
 );
 
-const typographyOptions = [
-  { label: 'Noto Serif', value: "'Noto Serif', serif" },
-  { label: 'Be Vietnam Pro', value: "'Be Vietnam Pro', sans-serif" },
-  { label: 'Georgia', value: 'Georgia, serif' },
-];
+// 🖼️ controle de imagem
+const currentImageIndex = ref(0);
 
+const currentGift = computed(() => gifts[currentImageIndex.value]);
+
+function nextImage() {
+  currentImageIndex.value = (currentImageIndex.value + 1) % gifts.length;
+}
+
+function prevImage() {
+  currentImageIndex.value =
+    (currentImageIndex.value - 1 + gifts.length) % gifts.length;
+}
+
+function selectCurrentImage() {
+  backgroundImage.value = currentGift.value.imageUrl;
+}
+
+// 🎨 helper cor
+function normalizeHex(value: string): string {
+  if (!value) return '#000000';
+  if (value.startsWith('#')) return value;
+  return `#${value}`;
+}
+
+// 🚀 download
 function handleDownload(): void {
   emit('download');
 }
@@ -47,106 +79,176 @@ function handleDownload(): void {
 
 <template>
   <Card>
-    <form class="form" @submit.prevent="handleDownload">
-      <h2>Personalize seu selo</h2>
+    <form class="form seal-form" @submit.prevent="handleDownload">
+      <h2 class="seal-form-title">Personalize seu selo</h2>
 
-      <Input
-        id="guestName"
-        v-model="guestName"
-        label="Nome"
-        placeholder="Digite seu nome"
-        :required="true"
-      />
-
-      <Textarea
-        id="message"
-        v-model="message"
-        label="Mensagem"
-        placeholder="Escreva uma mensagem para os noivos"
-        :rows="4"
-      />
-
-      <Select
-        id="styleId"
-        v-model="styleId"
-        label="Estilo do selo"
-        :options="styleOptions"
-      />
-
-      <div class="color-grid">
+      <div class="field">
         <Input
-          id="backgroundColor"
-          v-model="backgroundColor"
-          label="Cor de fundo"
-          type="color"
-        />
-        <Input
-          id="textColor"
-          v-model="textColor"
-          label="Cor do texto"
-          type="color"
+          v-model="guestName"
+          label="Nome"
+          placeholder="Digite seu nome"
+          :required="true"
         />
       </div>
 
-      <Select
-        id="fontFamily"
-        v-model="fontFamily"
-        label="Tipografia"
-        :options="typographyOptions"
-      />
+      <div class="field">
+        <Textarea
+          v-model="message"
+          label="Mensagem"
+          placeholder="Escreva uma mensagem"
+          :rows="4"
+        />
+      </div>
 
-      <div class="toggle-row">
-        <label class="toggle-control">
-          <input v-model="isBold" type="checkbox" />
-          <span>Negrito</span>
+      <div class="field">
+        <Select
+          v-model="styleId"
+          label="Formato do selo"
+          :options="styleOptions"
+        />
+      </div>
+
+      <!-- 🎨 modo fundo -->
+      <div class="field background-mode-row">
+        <label>
+          <input type="radio" v-model="backgroundMode" value="color" />
+          Cor
         </label>
-        <label class="toggle-control">
-          <input v-model="isItalic" type="checkbox" />
-          <span>Italico</span>
+        <label>
+          <input type="radio" v-model="backgroundMode" value="image" />
+          Imagem
         </label>
       </div>
 
-      <Button type="submit" :full-width="true">
-        {{ isDownloading ? 'Gerando imagem...' : 'Baixar selo em PNG' }}
-      </Button>
+      <!-- 🎨 cor fundo -->
+      <div v-if="backgroundMode === 'color'" class="field">
+        <label class="section-label">Cor de fundo</label>
+        <div class="color-field">
+          <input type="color" v-model="backgroundColor" class="color-picker" />
+          <input type="text" v-model="backgroundColor" class="color-input" />
+        </div>
+      </div>
+
+      <!-- 🖼️ imagem -->
+      <div v-if="backgroundMode === 'image'" class="field">
+        <label class="section-label">Imagem</label>
+
+        <div class="image-selector">
+          <button type="button" class="arrow" @click="prevImage">←</button>
+
+          <div class="image-preview" @click="selectCurrentImage">
+            <img :src="currentGift.imageUrl" />
+            <span class="image-name">{{ currentGift.name }}</span>
+          </div>
+
+          <button type="button" class="arrow" @click="nextImage">→</button>
+        </div>
+      </div>
+
+      <!-- 🎨 cor texto -->
+      <div class="field">
+        <label class="section-label">Cor do texto</label>
+        <div class="color-field">
+          <input type="color" v-model="textColor" class="color-picker" />
+          <input type="text" v-model="textColor" class="color-input" />
+        </div>
+      </div>
+
+      <!-- ✍️ tipografia -->
+      <div class="field typography-section">
+        <Select
+          v-model="fontFamily"
+          label="Fonte"
+          :options="[
+            { label: 'Noto Serif', value: `'Noto Serif', serif` },
+            { label: 'Be Vietnam Pro', value: `'Be Vietnam Pro', sans-serif` },
+          ]"
+        />
+
+        <div class="font-style-row">
+          <label>
+            <input type="checkbox" v-model="isBold" />
+            Negrito
+          </label>
+          <label>
+            <input type="checkbox" v-model="isItalic" />
+            Itálico
+          </label>
+        </div>
+      </div>
+
+      <button class="download-btn" :disabled="props.isDownloading">
+        {{ props.isDownloading ? 'Gerando...' : 'Baixar selo' }}
+      </button>
     </form>
   </Card>
 </template>
 
 <style scoped>
-.form {
-  padding: var(--space-6);
-  display: grid;
-  gap: var(--space-4);
+.seal-form {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  border-radius: 18px;
 }
 
-.form h2 {
-  margin: 0;
-  font-family: var(--font-display);
-  color: var(--color-primary);
+.field {
+  margin-bottom: 1.2rem;
 }
 
-.color-grid {
-  display: grid;
-  gap: var(--space-4);
-  grid-template-columns: 1fr 1fr;
-}
-
-.toggle-row {
+.background-mode-row {
   display: flex;
-  gap: var(--space-6);
+  gap: 2rem;
 }
 
-.toggle-control {
-  display: inline-flex;
+.color-field {
+  display: flex;
   align-items: center;
-  gap: var(--space-2);
-  color: var(--color-text-muted);
+  gap: 10px;
 }
 
-@media (max-width: 550px) {
-  .color-grid {
-    grid-template-columns: 1fr;
-  }
+.color-picker {
+  width: 42px;
+  height: 42px;
+  border: none;
+  cursor: pointer;
+}
+
+.color-input {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.image-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.image-preview {
+  width: 180px;
+  height: 180px;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.arrow {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.download-btn {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.8rem;
 }
 </style>

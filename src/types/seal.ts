@@ -3,6 +3,7 @@ export interface SealStyle {
   label: string;
   background: string;
   border: string;
+  shape: 'square' | 'circle' | 'rounded' | 'pill';
 }
 
 export interface SealFormState {
