@@ -5,7 +5,7 @@ import GiftsPage from '../pages/GiftsPage.vue';
 import SealPage from '../pages/SealPage.vue';
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',

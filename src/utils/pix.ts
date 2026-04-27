@@ -1,4 +1,4 @@
-import { payload as pixPayload } from 'pix-payload';
+import * as pixPayload from 'pix-payload';
 
 import { PIX_CONFIG } from '../config/pix';
 
@@ -9,11 +9,11 @@ export function generatePixPayload({
   amount?: number;
   description: string;
 }): string {
-  return pixPayload({
+  return pixPayload.payload({
     key: PIX_CONFIG.key,
     name: PIX_CONFIG.name,
     city: PIX_CONFIG.city,
     amount,
-    message: description,
+    // message não é suportado diretamente, então remova ou ajuste conforme necessário
   });
 }

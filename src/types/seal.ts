@@ -11,6 +11,8 @@ export interface SealFormState {
   message: string;
   styleId: string;
   backgroundColor: string;
+  backgroundImage: string;
+  backgroundMode: 'color' | 'image';
   textColor: string;
   fontFamily: string;
   isBold: boolean;
