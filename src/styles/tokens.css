@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,500;1,400&display=swap');
+
+:root {
+  --color-background: #faf9f6;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f4f3f1;
+  --color-surface-border: #e3e2e0;
+  --color-text: #1a1c1a;
+  --color-text-muted: #4d4635;
+  --color-primary: #735c00;
+  --color-primary-soft: #d4af37;
+  --color-primary-soft-hover: #e9c349;
+  --color-accent: #576158;
+  --color-danger: #ba1a1a;
+
+  --font-display: 'Noto Serif', serif;
+  --font-body: 'Be Vietnam Pro', sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --shadow-soft: 0 8px 30px rgba(115, 92, 0, 0.08);
+  --shadow-card: 0 4px 24px rgba(212, 175, 55, 0.08);
+
+  --container-max: 1200px;
+  --header-height: 80px;
+}
