@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import html2canvas from 'html2canvas';
 import { computed, reactive, ref } from 'vue';
-import { useRoute } from 'vue-router';
+// import { useRoute } from 'vue-router'; // removido pois não é utilizado
 
 import SealForm from '../components/seal/SealForm.vue';
 import SealPreview from '../components/seal/SealPreview.vue';
@@ -13,7 +13,7 @@ interface PreviewExpose {
   getElement: () => HTMLElement | null;
 }
 
-const route = useRoute();
+// const route = useRoute(); // removido pois não é utilizado
 
 // 🎨 estilos
 const sealStyles: SealStyle[] = [

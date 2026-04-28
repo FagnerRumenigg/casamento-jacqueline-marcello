@@ -65,11 +65,7 @@ function selectCurrentImage() {
 }
 
 // 🎨 helper cor
-function normalizeHex(value: string): string {
-  if (!value) return '#000000';
-  if (value.startsWith('#')) return value;
-  return `#${value}`;
-}
+// Removido: normalizeHex não utilizado
 
 // 🚀 download
 function handleDownload(): void {
@@ -84,6 +80,7 @@ function handleDownload(): void {
 
       <div class="field">
         <Input
+          id="seal-guestName"
           v-model="guestName"
           label="Nome"
           placeholder="Digite seu nome"
@@ -93,6 +90,7 @@ function handleDownload(): void {
 
       <div class="field">
         <Textarea
+          id="seal-message"
           v-model="message"
           label="Mensagem"
           placeholder="Escreva uma mensagem"
@@ -102,6 +100,7 @@ function handleDownload(): void {
 
       <div class="field">
         <Select
+          id="seal-styleId"
           v-model="styleId"
           label="Formato do selo"
           :options="styleOptions"
@@ -157,6 +156,7 @@ function handleDownload(): void {
       <!-- ✍️ tipografia -->
       <div class="field typography-section">
         <Select
+          id="seal-fontFamily"
           v-model="fontFamily"
           label="Fonte"
           :options="[

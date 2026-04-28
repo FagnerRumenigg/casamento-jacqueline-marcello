@@ -43,8 +43,8 @@ onBeforeUnmount(() => {
     <header class="intro">
       <h1 class="page-title">Lista de Presentes</h1>
       <p class="page-subtitle">
-        Escolha um presente simbolico e contribua via Pix. Sua presenca e o
-        maior presente.
+        Sua presença é o maior presente, mas se quiser nos mimar, ficaremos
+        muito felizes!
       </p>
     </header>
 

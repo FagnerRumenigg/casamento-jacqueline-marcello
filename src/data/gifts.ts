@@ -5,7 +5,7 @@ export const gifts: Gift[] = [
     id: 'jantar-romantico',
     name: 'Jantar Romantico',
     description:
-      'Para o primeiro jantar oficial como casados. Sem louca para lavar! 🍝',
+      'Para o primeiro jantar oficial como casados. Sem louça para lavar! 🍝',
     price: 250,
     imageUrl:
       'https://images.unsplash.com/photo-1528605105345-5344ea20e269?auto=format&fit=crop&w=1200&q=80',

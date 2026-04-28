@@ -27,10 +27,7 @@ const copyFeedback = ref('');
 const customMessage = ref('');
 const editableAmount = ref(props.amount ?? 0);
 
-const formatter = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-});
+// Removido: formatter não utilizado
 
 const hasAmount = computed(
   () =>
@@ -67,9 +64,8 @@ async function buildPixCode(): Promise<void> {
   });
 
   try {
-    const generatedPayload = generatePixPayload({
+    const generatedPayload = await generatePixPayload({
       amount: hasAmount.value ? editableAmount.value : undefined,
-      description: description.value,
     });
     console.info('[PixModal] Payload Pix gerado', {
       payloadSize: generatedPayload.length,
@@ -112,7 +108,7 @@ watch(
   () => [props.open, props.giftName, props.amount],
   ([isOpen, _giftName, amount]) => {
     if (isOpen) {
-      editableAmount.value = amount ?? 0;
+      editableAmount.value = typeof amount === 'number' ? amount : 0;
       void buildPixCode();
     }
   },

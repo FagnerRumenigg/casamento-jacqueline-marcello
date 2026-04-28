@@ -14,7 +14,7 @@ const {
   cartTotal,
   hasItems,
   firstGiftId,
-  selectedGift,
+  // selectedGift removido pois não é utilizado
   removeGift,
   addGift,
 } = useGiftCart();
