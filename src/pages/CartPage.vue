@@ -1,24 +1,68 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, ref, watch } from 'vue';
 
 import PixModal from '../components/pix/PixModal.vue';
 import Button from '../components/ui/Button.vue';
 import Card from '../components/ui/Card.vue';
 import { useGiftCart } from '../stores/giftCart';
 
-const router = useRouter();
+const { cartItems, cartTotal, hasItems, removeGift, addGift } = useGiftCart();
 
-const {
-  cartItems,
-  cartTotal,
-  hasItems,
-  firstGiftId,
-  // selectedGift removido pois não é utilizado
-  removeGift,
-  addGift,
-} = useGiftCart();
-const isPixModalOpen = ref(false);
+// PIX STATES E LÓGICA
+import QRCode from 'qrcode';
+import { generatePixPayload } from '../utils/pix';
+const payload = ref('');
+const qrCodeUrl = ref('');
+const isGenerating = ref(false);
+const errorMessage = ref('');
+const copyFeedback = ref('');
+const editableAmount = ref(cartTotal.value);
+
+const hasAmount = computed(
+  () =>
+    typeof editableAmount.value === 'number' &&
+    Number.isFinite(editableAmount.value),
+);
+
+async function buildPixCode() {
+  isGenerating.value = true;
+  errorMessage.value = '';
+  copyFeedback.value = '';
+  try {
+    const generatedPayload = await generatePixPayload({
+      amount: hasAmount.value ? editableAmount.value : undefined,
+    });
+    payload.value = generatedPayload;
+    qrCodeUrl.value = await QRCode.toDataURL(generatedPayload);
+  } catch (error) {
+    payload.value = '';
+    qrCodeUrl.value = '';
+    errorMessage.value = 'Não foi possível gerar o QR Code Pix agora.';
+  } finally {
+    isGenerating.value = false;
+  }
+}
+
+async function copyPix() {
+  if (!payload.value) return;
+  try {
+    await navigator.clipboard.writeText(payload.value);
+    copyFeedback.value = 'Código Pix copiado.';
+    window.setTimeout(() => {
+      copyFeedback.value = '';
+    }, 1800);
+  } catch {
+    copyFeedback.value = 'Não foi possível copiar agora.';
+  }
+}
+
+watch(
+  [cartItems, editableAmount],
+  () => {
+    buildPixCode();
+  },
+  { immediate: true },
+);
 
 const formatter = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -29,22 +73,7 @@ const totalItemsLabel = computed(() =>
   cartItems.value.reduce((total, item) => total + item.quantity, 0),
 );
 
-function handleGoToSeal(): void {
-  if (!firstGiftId.value) {
-    return;
-  }
-
-  router.push({
-    path: '/selo',
-    query: {
-      giftId: firstGiftId.value,
-    },
-  });
-}
-
-function handleOpenPixModal(): void {
-  isPixModalOpen.value = true;
-}
+const isPixModalOpen = ref(false);
 
 function handleClosePixModal(): void {
   isPixModalOpen.value = false;
@@ -78,10 +107,10 @@ function handleClosePixModal(): void {
               <strong>{{ item.gift.name }}</strong>
               <span>{{ formatter.format(item.gift.price) }}</span>
             </div>
+
             <div class="cart-qty-controls">
               <button
                 class="qty-btn"
-                aria-label="Diminuir quantidade"
                 @click="
                   () =>
                     item.quantity > 1 &&
@@ -94,16 +123,18 @@ function handleClosePixModal(): void {
               >
                 -
               </button>
+
               <span class="qty-value">{{ item.quantity }}</span>
+
               <button
                 class="qty-btn"
-                aria-label="Aumentar quantidade"
                 @click="() => addGift(item.gift)"
                 type="button"
               >
                 +
               </button>
             </div>
+
             <Button variant="ghost" @click="removeGift(item.gift.id)">
               Remover
             </Button>
@@ -116,13 +147,57 @@ function handleClosePixModal(): void {
         <p>{{ totalItemsLabel }} item(ns)</p>
         <p class="total">{{ formatter.format(cartTotal) }}</p>
 
-        <Button :full-width="true" @click="handleOpenPixModal">
-          Presentear com amor &#10084;
-        </Button>
+        <section class="pix-summary">
+          <h3>Contribua com os noivos 💖</h3>
+          <p>Escaneie o QR Code ou copie o código abaixo.</p>
 
-        <Button variant="ghost" :full-width="true" @click="handleGoToSeal">
-          Ir para criação do selo
-        </Button>
+          <div v-if="cartTotal > 0" class="amount amount-editable">
+            <label for="editableAmount">Valor sugerido:</label>
+            <input
+              id="editableAmount"
+              type="number"
+              min="0.01"
+              step="0.01"
+              v-model.number="editableAmount"
+              @input="buildPixCode"
+              class="amount-input"
+            />
+            <span class="amount-currency">R$</span>
+          </div>
+
+          <!-- <p class="description">{{ pixDescription }}</p> -->
+
+          <!-- CÓDIGO PIX PRIMEIRO -->
+          <div v-if="payload" class="pix-payload-block">
+            <label class="payload-field">Código Pix</label>
+
+            <textarea
+              :value="payload"
+              readonly
+              rows="4"
+              class="payload-textarea"
+            ></textarea>
+          </div>
+
+          <!-- STATUS -->
+          <div v-if="isGenerating" class="status">Gerando QR Code Pix...</div>
+
+          <p v-else-if="errorMessage" class="status status--error">
+            {{ errorMessage }}
+          </p>
+
+          <!-- QR CODE POR ÚLTIMO -->
+          <img
+            v-else-if="qrCodeUrl"
+            :src="qrCodeUrl"
+            alt="QR Code Pix"
+            class="qr-image"
+          />
+
+          <p v-if="copyFeedback" class="status">{{ copyFeedback }}</p>
+
+          <Button @click="copyPix">Copiar código Pix</Button>
+        </section>
       </Card>
     </div>
 
@@ -145,20 +220,6 @@ function handleClosePixModal(): void {
   text-align: center;
 }
 
-.empty-state {
-  max-width: 680px;
-  margin-inline: auto;
-  padding: var(--space-8);
-  text-align: center;
-  display: grid;
-  gap: var(--space-4);
-}
-
-.empty-state h2,
-.empty-state p {
-  margin: 0;
-}
-
 .cart-grid {
   display: grid;
   gap: var(--space-6);
@@ -170,93 +231,80 @@ function handleClosePixModal(): void {
   padding: var(--space-6);
 }
 
-.cart-list h2,
-.cart-summary h2 {
-  margin: 0 0 var(--space-4);
-  color: var(--color-primary);
-  font-family: var(--font-display);
-}
-
-.cart-list ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--space-3);
-}
-
-.cart-item {
+/* 🔥 CORREÇÃO DO LABEL + CAMPO */
+.pix-payload-block {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
+  flex-direction: column;
+  gap: 6px;
+}
+
+.payload-field {
+  font-weight: 600;
+}
+
+.payload-textarea {
+  resize: none;
+  width: 100%;
+  padding: 8px;
   border: 1px solid var(--color-surface-border);
   border-radius: var(--radius-md);
-  padding: var(--space-4);
-  flex-wrap: wrap;
+  font-family: monospace;
 }
 
+/* CONTROLES DE QUANTIDADE */
 .cart-qty-controls {
   display: flex;
   align-items: center;
-  gap: 6px;
-}
-.qty-btn {
+  gap: 12px;
   background: var(--color-surface-muted);
-  border: 1px solid var(--color-surface-border);
   border-radius: var(--radius-pill);
-  width: 28px;
-  height: 28px;
-  font-size: 1.1rem;
-  color: var(--color-primary);
+  padding: 4px 12px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.qty-btn {
+  background: var(--color-primary);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
+  color: #fff;
   cursor: pointer;
   transition: background 0.15s;
+  font-weight: bold;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
-.qty-btn:disabled {
+qty-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.qty-value {
-  min-width: 1.5em;
-  text-align: center;
-  font-weight: 600;
-  color: var(--color-primary);
-}
-
-.item-main {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.item-main strong {
-  font-family: var(--font-display);
-}
-
-.item-main span {
+  background: var(--color-surface-border);
   color: var(--color-text-muted);
 }
 
-.cart-summary {
-  display: grid;
-  gap: var(--space-3);
-  align-content: start;
+qty-value {
+  min-width: 2em;
+  text-align: center;
+  font-weight: 700;
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  background: #fff;
+  border-radius: 6px;
+  padding: 2px 8px;
+  border: 1px solid var(--color-surface-border);
 }
 
-.cart-summary p {
-  margin: 0;
-}
+/* resto mantido */
 
 .total {
   font-size: 2rem;
   color: var(--color-primary);
-  font-family: var(--font-display);
 }
 
 @media (min-width: 980px) {
   .cart-grid {
     grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
-    align-items: start;
   }
 }
 </style>

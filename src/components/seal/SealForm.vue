@@ -130,7 +130,7 @@ function handleDownload(): void {
 
       <!-- 🖼️ imagem -->
       <div v-if="backgroundMode === 'image'" class="field">
-        <label class="section-label">Imagem</label>
+        <label class="section-label"></label>
 
         <div class="image-selector">
           <button type="button" class="arrow" @click="prevImage">←</button>
@@ -228,22 +228,61 @@ function handleDownload(): void {
 }
 
 .image-preview {
-  width: 180px;
-  height: 180px;
+  width: 240px;
+  height: 240px;
   cursor: pointer;
   overflow: hidden;
-  border-radius: 10px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .image-preview img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 12px;
+}
+
+.image-name {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: var(--color-primary, #a67c00);
+  font-weight: 600;
+  text-align: center;
 }
 
 .arrow {
-  font-size: 1.5rem;
+  font-size: 2.2rem;
   cursor: pointer;
+  background: none;
+  color: #a67c00;
+  border: none;
+  border-radius: 0;
+  width: auto;
+  height: auto;
+  box-shadow: none;
+  margin: 0 8px;
+  padding: 0 8px;
+  transition:
+    color 0.15s,
+    transform 0.12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrow:hover {
+  color: #d4af37;
+  transform: scale(1.12);
+}
+
+.arrow:active {
+  color: #8d6a00;
 }
 
 .download-btn {

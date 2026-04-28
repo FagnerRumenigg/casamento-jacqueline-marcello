@@ -125,7 +125,7 @@ async function downloadSeal(): Promise<void> {
 <template>
   <section class="page-container seal-page">
     <header class="intro">
-      <h1 class="page-title">Criação de Selos</h1>
+      <h1 class="page-title">Criação de Experiências</h1>
       <p class="page-subtitle">
         Personalize seu selo e mande aquele carinho pros noivos 💛
       </p>

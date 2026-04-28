@@ -4,4 +4,5 @@ export interface Gift {
   description: string;
   price: number;
   imageUrl: string;
+  dynamicMessage: string;
 }

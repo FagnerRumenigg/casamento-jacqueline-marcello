@@ -23,7 +23,7 @@ const uniqueGiftData = useUniqueCartGiftData();
 
 // 🎨 estilo dinâmico
 const dynamicStyle = computed(() => {
-  let bg = props.backgroundColor;
+  let bg = props.backgroundColor || '#ffffff';
 
   if (props.backgroundMode === 'image' && props.backgroundImage) {
     bg = `url('${props.backgroundImage}') center/cover no-repeat`;
@@ -38,17 +38,14 @@ const dynamicStyle = computed(() => {
 
   return {
     background: bg,
-    color: props.textColor,
+    color: props.textColor || '#000000',
     borderColor: props.selectedStyle?.border || '#ccc',
     fontFamily: props.fontFamily,
-    fontWeight: props.isBold ? '700' : '400',
     fontStyle: props.isItalic ? 'italic' : 'normal',
-
     ...shapeStyles[props.selectedStyle?.shape || 'square'],
   };
 });
 
-// fallback
 const guestLabel = computed(() => props.guestName.trim() || 'Seu nome aqui');
 const messageLabel = computed(
   () => props.message.trim() || 'Sua mensagem especial aparecerá aqui.',
@@ -64,21 +61,44 @@ defineExpose({ getElement });
 
 <template>
   <Card class="seal-preview-card">
-    <h2>Pré-visualização do Selo</h2>
+    <h2>Pré-visualização</h2>
 
     <div ref="previewEl" class="seal-preview" :style="dynamicStyle">
-      <p class="seal-preview__kicker">Aproveite o(s)</p>
+      <!-- 🥚 botão -->
+      <div class="easter-egg">Qui AMA?!</div>
 
+      <!-- 🖼️ overlay FULL -->
+      <img
+        src="https://i.ytimg.com/vi/saPu_bwTjK4/hqdefault.jpg"
+        alt="meme"
+        class="easter-egg-overlay"
+      />
+
+      <!-- TÍTULO -->
+      <p class="seal-preview__kicker">🎉 Experiência Ativada</p>
+
+      <!-- PRESENTES -->
       <ul v-if="hasGifts" class="seal-gift-list">
         <li v-for="gift in uniqueGiftData" :key="gift?.id">
-          {{ gift?.name }}
+          {{ gift?.dynamicMessage }}
         </li>
       </ul>
 
       <h3 v-else>Nenhum presente selecionado</h3>
 
+      <!-- FRASE -->
+      <p v-if="hasGifts" class="seal-preview__intro">
+        Esse momento foi escolhido por:
+      </p>
+
+      <!-- NOME -->
       <p class="seal-preview__guest">{{ guestLabel }}</p>
-      <p class="seal-preview__message">{{ messageLabel }}</p>
+
+      <!-- MENSAGEM -->
+      <div class="seal-preview__message-block">
+        <span class="seal-preview__message-label">💌 Recado especial:</span>
+        <p class="seal-preview__message">{{ messageLabel }}</p>
+      </div>
     </div>
   </Card>
 </template>
@@ -98,22 +118,96 @@ defineExpose({ getElement });
   align-content: center;
   text-align: center;
   gap: var(--space-3);
+  background: #fff;
+  color: #000;
 }
 
 .seal-preview::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.05);
+  z-index: 1;
 }
 
 .seal-preview * {
   position: relative;
-  z-index: 1;
+  z-index: 2;
+}
+
+/* 🥚 botão */
+.easter-egg {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  cursor: pointer;
+  z-index: 10;
+}
+
+/* 🖼️ overlay */
+.easter-egg-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 5;
+  pointer-events: none;
+  filter: brightness(0.9) contrast(1.1);
+}
+
+.easter-egg:hover ~ .easter-egg-overlay {
+  opacity: 1;
+}
+
+/* 🔥 Tipografia */
+
+.seal-preview__kicker {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* ✨ NOVO */
+.seal-preview__dynamic {
+  font-size: 0.95rem;
+  font-weight: 700;
+  opacity: 0.9;
 }
 
 .seal-gift-list {
   list-style: none;
   padding: 0;
+  margin: 0;
+  font-weight: 700;
+}
+
+.seal-preview__intro {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.seal-preview__guest {
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+.seal-preview__message-block {
+  margin-top: 8px;
+  display: grid;
+  gap: 4px;
+}
+
+.seal-preview__message-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.seal-preview__message {
+  font-size: 0.95rem;
+  font-weight: 400;
 }
 </style>
