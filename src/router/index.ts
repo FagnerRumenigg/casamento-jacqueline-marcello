@@ -1,8 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import CartPage from '../pages/CartPage.vue';
 import GiftsPage from '../pages/GiftsPage.vue';
-import SealPage from '../pages/SealPage.vue';
+import CardPage from '../pages/CardPage.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,14 +12,13 @@ const router = createRouter({
       component: GiftsPage,
     },
     {
-      path: '/selo',
-      name: 'seal',
-      component: SealPage,
+      path: '/cartao',
+      name: 'card',
+      component: CardPage,
     },
     {
-      path: '/carrinho',
-      name: 'cart',
-      component: CartPage,
+      path: '/:pathMatch(.*)*',
+      redirect: '/', // 🔥 evita erro de rota tipo /carrinho
     },
   ],
 });

@@ -1,4 +1,4 @@
-export interface SealStyle {
+export interface CardStyle {
   id: string;
   label: string;
   background: string;
@@ -6,7 +6,7 @@ export interface SealStyle {
   shape: 'square' | 'circle' | 'rounded' | 'pill';
 }
 
-export interface SealFormState {
+export interface CardFormState {
   guestName: string;
   message: string;
   styleId: string;

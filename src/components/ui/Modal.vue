@@ -21,10 +21,10 @@ function closeModal(): void {
 
 <template>
   <teleport to="body">
-    <transition name="fade">
+    <transition name="modal">
       <div v-if="isOpen" class="modal-backdrop" @click.self="closeModal">
         <section
-          class="modal surface-card"
+          class="modal"
           role="dialog"
           aria-modal="true"
           :aria-label="props.title"
@@ -32,11 +32,15 @@ function closeModal(): void {
           <header class="modal__header">
             <h2>{{ props.title }}</h2>
           </header>
+
           <div class="modal__content">
             <slot />
           </div>
+
           <footer class="modal__footer">
-            <Button @click="closeModal">{{ props.closeLabel }}</Button>
+            <Button fullWidth @click="closeModal">
+              {{ props.closeLabel }}
+            </Button>
           </footer>
         </section>
       </div>
@@ -45,46 +49,61 @@ function closeModal(): void {
 </template>
 
 <style scoped>
+/* backdrop mais suave */
 .modal-backdrop {
   position: fixed;
   inset: 0;
   z-index: 90;
-  background: rgba(32, 24, 3, 0.5);
+  background: rgba(20, 16, 4, 0.55);
+  backdrop-filter: blur(4px);
   display: grid;
   place-items: center;
   padding: var(--space-5);
 }
 
+/* modal */
 .modal {
-  width: min(100%, 440px);
+  width: min(100%, 420px);
   padding: var(--space-6);
+  border-radius: 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
+/* header */
 .modal__header h2 {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   margin: 0;
   color: var(--color-primary);
 }
 
+/* conteúdo */
 .modal__content {
   margin-top: var(--space-4);
   color: var(--color-text-muted);
+  line-height: 1.4;
 }
 
+/* footer */
 .modal__footer {
-  display: flex;
-  justify-content: flex-end;
   margin-top: var(--space-6);
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 150ms ease;
+/* animação mais viva */
+.modal-enter-active,
+.modal-leave-active {
+  transition: all 180ms ease;
 }
 
-.fade-enter-from,
-.fade-leave-to {
+.modal-enter-from {
   opacity: 0;
+  transform: translateY(10px) scale(0.97);
+}
+
+.modal-leave-to {
+  opacity: 0;
+  transform: translateY(10px) scale(0.97);
 }
 </style>

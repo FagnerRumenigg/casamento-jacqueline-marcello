@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import BaseField from './BaseField.vue';
 
 const model = defineModel<string>({ default: '' });
 
 const props = withDefaults(
   defineProps<{
-    id: string;
+    id?: string;
     label: string;
     placeholder?: string;
     type?: string;
@@ -17,47 +17,35 @@ const props = withDefaults(
     required: false,
   },
 );
-
-const showAsterisk = computed(() => props.required);
 </script>
 
 <template>
-  <label :for="props.id" class="field">
-    <span class="field__label">
-      {{ props.label }}
-      <strong v-if="showAsterisk" aria-hidden="true">*</strong>
-    </span>
+  <BaseField :label="props.label" :required="props.required" v-slot="{ id }">
     <input
-      :id="props.id"
+      :id="id"
       v-model="model"
-      class="field__control"
+      class="control"
       :placeholder="props.placeholder"
       :type="props.type"
       :required="props.required"
     />
-  </label>
+  </BaseField>
 </template>
 
 <style scoped>
-.field {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.field__label {
-  font-weight: 500;
-}
-
-.field__control {
+.control {
   width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
   border: 1px solid var(--color-surface-border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
+  background: white;
+  transition: all 0.15s;
 }
 
-.field__control:focus {
-  outline: 2px solid color-mix(in srgb, var(--color-primary-soft) 70%, white);
-  border-color: var(--color-primary-soft);
+.control:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 </style>

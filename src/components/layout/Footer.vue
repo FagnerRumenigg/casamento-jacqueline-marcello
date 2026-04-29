@@ -2,7 +2,7 @@
   <footer class="footer">
     <div class="page-container footer-content">
       <div class="brand">Jacqueline e Marcello</div>
-      <p class="text">Feito com carinho para celebrar esse novo comeco.</p>
+      <p class="text">Feito com carinho para celebrar o amor</p>
       <p class="copyright">© 2026 Jacqueline e Marcello</p>
     </div>
   </footer>
