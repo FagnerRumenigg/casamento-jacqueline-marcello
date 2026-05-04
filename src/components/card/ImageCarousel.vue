@@ -31,7 +31,9 @@ watch(
   () => [props.selectedImage, props.items] as const,
   ([selectedImage, items]) => {
     if (!selectedImage || !items.length) return;
-    const selectedIndex = items.findIndex((item) => item.image === selectedImage);
+    const selectedIndex = items.findIndex(
+      (item) => item.image === selectedImage,
+    );
     if (selectedIndex >= 0) {
       index.value = selectedIndex;
     }
@@ -105,9 +107,13 @@ const helperMessage = computed(() => {
   display: flex;
   align-items: center;
   gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .preview {
+  flex-shrink: 0;
   width: 240px;
   height: 240px;
   border-radius: 16px;
@@ -115,6 +121,13 @@ const helperMessage = computed(() => {
   cursor: pointer;
   position: relative;
   transition: transform 0.15s ease;
+}
+
+@media (max-width: 480px) {
+  .preview {
+    width: 200px;
+    height: 200px;
+  }
 }
 
 .preview:hover {
@@ -125,6 +138,7 @@ const helperMessage = computed(() => {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  display: block;
 }
 
 .label {
@@ -152,12 +166,14 @@ const helperMessage = computed(() => {
 }
 
 .arrow {
+  flex-shrink: 0;
   font-size: 1.8rem;
   cursor: pointer;
   background: none;
   border: none;
   color: var(--color-primary);
   transition: transform 0.15s;
+  padding: 8px;
 }
 
 .arrow:hover {

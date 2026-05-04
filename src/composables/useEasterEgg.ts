@@ -26,7 +26,7 @@ function normalize(text: string): string {
 
 const defs: EggDef[] = [
   {
-    i: getAsset('images/memes/quiama.jpg'),
+    i: getAsset('images/memes/6.jpg'),
     k: [
       {
         w: 2,
@@ -43,7 +43,7 @@ const defs: EggDef[] = [
     ],
   },
   {
-    i: getAsset('images/memes/verdade-bilete.webp'),
+    i: getAsset('images/memes/7.webp'),
     k: [
       {
         w: 4,
@@ -60,7 +60,7 @@ const defs: EggDef[] = [
     ],
   },
   {
-    i: getAsset('images/memes/nazare.jpg'),
+    i: getAsset('images/memes/2.jpg'),
     k: [
       {
         w: 2,
@@ -77,7 +77,7 @@ const defs: EggDef[] = [
     ],
   },
   {
-    i: getAsset('images/memes/opinar.png'),
+    i: getAsset('images/memes/3.png'),
     k: [
       {
         w: 5,
@@ -94,24 +94,20 @@ const defs: EggDef[] = [
     ],
   },
   {
-    i: getAsset('images/memes/quero_cafe.jpg'),
+    i: getAsset('images/memes/4.jpg'),
     k: [
       {
         w: 2,
         h: '4950a6797a9981ff27f177150bc46a14cd9abb585ecee5f06bf3468492fb00df',
       },
       {
-        w: 1,
-        h: 'a860b858265b22dad3aaf1165cfc2936daf1d3d86e0b7b77e3cc07f59f96858f',
-      },
-      {
-        w: 1,
-        h: '10f7602778f6e1f44d31fc1d17871f131f3511939f63c90022cea7a77fcc454e',
+        w: 2,
+        h: '8957b5ea2cae27a3e21e45c959e00c6d501888eea04ed22fd5b8f8fee82c1a14',
       },
     ],
   },
   {
-    i: getAsset('images/memes/cinco_reais.png'),
+    i: getAsset('images/memes/5.png'),
     k: [
       {
         w: 4,
@@ -124,7 +120,7 @@ const defs: EggDef[] = [
     ],
   },
   {
-    i: getAsset('images/memes/natasha_caldeirao.jpg'),
+    i: getAsset('images/memes/1.jpg'),
     k: [
       {
         w: 4,
@@ -137,6 +133,183 @@ const defs: EggDef[] = [
       {
         w: 3,
         h: '0edd914036468074745fce0e75c6d66e043f83432edc9dfbf9882981429e59ce',
+      },
+    ],
+  },
+  {
+    i: getAsset('images/memes/8.jpg'),
+    k: [
+      {
+        w: 3,
+        h: '9a7d14c2970c7d1eb5658aaae3d6e13b4ffdb3b78b16a62516b5f608522a6a06',
+      },
+      {
+        w: 1,
+        h: '0d5879ae8d601c9825ef2af6e3bfcf4173879171292645d3894dcfee02449191',
+      },
+      {
+        w: 2,
+        h: '3f45148c193192a5df4ab5c7ceaf422dffb1b5c4acf35a63f882bf11496f04bd',
+      },
+      {
+        w: 2,
+        h: 'e6ce099f782c95071e69de951297e256de36d09120f965008872348adb575be6',
+      },
+    ],
+  },
+  {
+    i: getAsset('images/memes/9.jpg'),
+    k: [
+      {
+        w: 2,
+        h: '7a2c1831dbaccfd9f32418ee6dcdd2c0fad9516f75d43a40d9673f40753ec688',
+      },
+      {
+        w: 1,
+        h: '1926c745e3b4d83365e0096c9c1380c14161389bf68d7b6ffa828070b0b3e038',
+      },
+      {
+        w: 2,
+        h: '3e555a92dd526339e216e4f7cd489207058c66f1d86d3325a95786f33041eb0f',
+      },
+    ],
+  },
+  {
+    i: getAsset('images/memes/10.jpg'),
+    k: [
+      {
+        w: 3,
+        h: 'aecda2cc22157524728684611001278f2f49a896cc8aae925972639f8c905cfe',
+      },
+      {
+        w: 2,
+        h: '0e383cf26b1516a2f32519ba6012468f8dc14fd908aeee38a6bf9dc027009642',
+      },
+      {
+        w: 1,
+        h: 'cc4082c626f8772f9e6853ddae7de56213369bf24e7ab10b9fc54c8ccee04cfd',
+      },
+    ],
+  },
+  {
+    i: getAsset('images/memes/11.jpg'),
+    k: [
+      {
+        w: 3,
+        h: 'e9828c8505d1cb90344313952df0ed38a0be061f469edfe4413c320a2436b42c',
+      },
+      {
+        w: 3,
+        h: 'b8a95ed190365c94f983e7fef1e5d53f0d47c631ecc4d68403cc799e5d89d4c2',
+      },
+      {
+        w: 3,
+        h: 'b1a2e2625137480fec1756fd2db28c699c8f84e8a1c0bf2f0ae5e955bb46dcf1',
+      },
+      {
+        w: 1,
+        h: 'eb2e3437cfd175c57c3dfc70891c4f456fc0964f151754f3ce51a8f45c94e67d',
+      },
+    ],
+  },
+  {
+    i: getAsset('images/memes/12.jpg'),
+    k: [
+      {
+        w: 1,
+        h: '0adb6210148ccc08617eb23099977de8c34c034dde71d3959281ecc47dcc3531',
+      },
+      {
+        w: 2,
+        h: '293b2a45328fbe46a9fdb3d1a826fea4f193fa15857dae33570b9cbfe58ce450',
+      },
+    ],
+  },
+  {
+    i: getAsset('images/memes/13.jpg'),
+    k: [
+      {
+        w: 3,
+        h: 'c52cd38624cb2e89dfa70643a8e937ca78178f034f3a86f1edbdebf7c7a35617',
+      },
+      {
+        w: 3,
+        h: '4fd4452c0f19d7c4a337e61d938d25759c5ff56f9114b0f9e1d8af7e3de06831',
+      },
+      {
+        w: 2,
+        h: '60d9d51800b11cb1d26a6af46dad698de2525b303c4387c8fea5e929b96b54fd',
+      },
+      {
+        w: 2,
+        h: '92a07b9c0cfe4bbbfb08bee910281c1b6d97d0f37cd2f57b180cf572195a7a0e',
+      },
+    ],
+  },
+  {
+    i: getAsset('images/memes/14.jpg'),
+    k: [
+      {
+        w: 2,
+        h: '410b6c41fa2fd55ad99cb0cdd3690962274d1dca8471d34160aab2d24981024f',
+      },
+      {
+        w: 3,
+        h: '9caf69bad28d21cc1e3bd127baa919072c02882d105ec4861de9121c20b85c6d',
+      },
+      {
+        w: 2,
+        h: '9fccad38dfbb77c1d0c173be4568cb0650b85568181e9193499922697956f33e',
+      },
+      {
+        w: 1,
+        h: '39e18a493b913441c12fac89a09f24958e5da0ff6f3300c80c5359f36e3223aa',
+      },
+    ],
+  },
+  {
+    i: getAsset('images/memes/15.jpg'),
+    k: [
+      {
+        w: 4,
+        h: '7843880b6c9226de80430c761eb81fc11e7728f8672f1b093c2c364ccc93b1de',
+      },
+      {
+        w: 1,
+        h: '01b96c24da5590f85ec09e0d4853e6f68a31c2cdbf0209ba6379febdf099b1f4',
+      },
+      {
+        w: 3,
+        h: 'ab7f41f42184c9c52b34fd700ef6253f0beddcdf3a5039c6044e84a0d7bd3416',
+      },
+      {
+        w: 3,
+        h: '7a05caa3027cfc1f18903e42d75ce4c88de7a0de6e59c5f8290525c0086d1930',
+      },
+    ],
+  },
+  {
+    i: getAsset('images/memes/16.jpg'),
+    k: [
+      {
+        w: 5,
+        h: 'ba70e5801931951a514f17c2eeaa8e32e869a230471f513d31e19d724930e1a2',
+      },
+      {
+        w: 3,
+        h: '06d863eff314cd82015e76baeb0e71bdb061f81e62011518648f8f5c3967e3ba',
+      },
+      {
+        w: 2,
+        h: '8ea9399e0f894f75b74deeeb493a3b403af2e17464e8118b3df9af8c874dc7f7',
+      },
+      {
+        w: 1,
+        h: '14d002066c4c378ecd98a0c27e8ad08a09fa2f4500ac3a40c268b3691630fe76',
+      },
+      {
+        w: 1,
+        h: '73199a5eaf1de7313fbdaf6645055582cbf9b177e83737af315d70d6b030b8ed',
       },
     ],
   },

@@ -82,8 +82,29 @@ function closeModal(): void {
 /* conteúdo */
 .modal__content {
   margin-top: var(--space-4);
+  margin-bottom: var(--space-4);
   color: var(--color-text-muted);
   line-height: 1.4;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: var(--space-2);
+}
+
+.modal__content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal__content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal__content::-webkit-scrollbar-thumb {
+  background: var(--color-surface-border);
+  border-radius: 3px;
+}
+
+.modal__content::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
 }
 
 /* footer */

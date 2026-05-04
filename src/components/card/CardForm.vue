@@ -255,6 +255,15 @@ function handleDownload(): void {
           Quando você olha ao redor sem entender nada e só consegue dizer:
           "corre aqui".
         </li>
+        <li>O som da frustração repetida em três sílabas.</li>
+        <li>O sussurro de quem pede harmonia e paz.</li>
+        <li>Quando pedir um pouco a mais é sempre a melhor opção.</li>
+        <li>A pergunta que surge quando você está totalmente perdido.</li>
+        <li>O título de respeito para uma figura importante.</li>
+        <li>Uma combinação numérica que rima com transporte.</li>
+        <li>Dois números que formam uma sequência ou confusão.</li>
+        <li>Quando investir tempo é literalmente perder tempo.</li>
+        <li>A resposta de quem não aceita ser comparado a um animal.</li>
       </ul>
       <p class="secret-note">
         Dica: acentos e pequenas variacoes podem funcionar.
