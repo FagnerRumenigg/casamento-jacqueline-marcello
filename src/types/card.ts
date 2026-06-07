@@ -14,6 +14,8 @@ export interface CardFormState {
   backgroundImage: string;
   backgroundMode: 'color' | 'image';
   textColor: string;
+  textBackgroundColor: string;
+  textBackgroundOpacity: number;
   fontFamily: string;
   isBold: boolean;
   isItalic: boolean;

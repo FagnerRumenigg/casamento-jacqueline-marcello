@@ -41,7 +41,6 @@ watch(
   { immediate: true, deep: true },
 );
 
-// navegação
 function next() {
   if (!props.items.length) return;
   index.value = (index.value + 1) % props.items.length;
@@ -57,13 +56,12 @@ function select() {
   emit('select', current.value.image);
 }
 
-// 🧠 mensagens dinâmicas
 const helperMessage = computed(() => {
   if (!props.items.length) {
-    return '🎁 Escolha um presente para liberar backgrounds';
+    return 'Escolha um presente para liberar backgrounds.';
   }
 
-  return '🎨 Escolha uma imagem para o cartão';
+  return 'Escolha uma imagem para o cartão.';
 });
 </script>
 
@@ -72,20 +70,19 @@ const helperMessage = computed(() => {
     <p class="helper">{{ helperMessage }}</p>
 
     <div v-if="items.length" class="carousel__content">
-      <button type="button" class="arrow" @click="prev">←</button>
+      <button type="button" class="arrow" @click="prev" aria-label="Imagem anterior">
+        ‹
+      </button>
 
       <div class="preview" @click="select">
-        <img :src="current.image" />
+        <img :src="current.image" :alt="current.label" />
 
-        <span v-if="current.type !== 'easter'" class="label">
-          {{ current.label }}
-        </span>
-
-        <!-- badge secreto -->
-        <span v-if="current.type === 'easter'" class="badge"> secreto </span>
+        <span v-if="current.type === 'easter'" class="badge">secreto</span>
       </div>
 
-      <button type="button" class="arrow" @click="next">→</button>
+      <button type="button" class="arrow" @click="next" aria-label="Próxima imagem">
+        ›
+      </button>
     </div>
   </div>
 </template>
@@ -141,18 +138,6 @@ const helperMessage = computed(() => {
   display: block;
 }
 
-.label {
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-}
-
 .badge {
   position: absolute;
   top: 6px;
@@ -169,11 +154,12 @@ const helperMessage = computed(() => {
   flex-shrink: 0;
   font-size: 1.8rem;
   cursor: pointer;
-  background: none;
-  border: none;
-  color: var(--color-primary);
+  background: #000000;
+  border: 1px solid #000000;
+  color: #ffffff;
+  border-radius: 999px;
   transition: transform 0.15s;
-  padding: 8px;
+  padding: 8px 12px;
 }
 
 .arrow:hover {

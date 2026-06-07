@@ -1,20 +1,44 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { computed, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useGiftCart } from '../../stores/giftCart';
+import Input from '../ui/Input.vue';
+import Modal from '../ui/Modal.vue';
+import Button from '../ui/Button.vue';
 
 const route = useRoute();
+const router = useRouter();
 const { cartCount } = useGiftCart();
 
 const isGiftsPage = computed(() => route.path === '/');
 const isCardPage = computed(() => route.path === '/cartao');
-
+const isCoupleCardsPage = computed(() => route.path === '/noivos/cartoes');
 const hasItems = computed(() => cartCount.value > 0);
+
+const isAccessModalOpen = ref(false);
+const coupleCardsKey = ref('');
+
+function openCoupleCardsModal(): void {
+  coupleCardsKey.value = '';
+  isAccessModalOpen.value = true;
+}
+
+async function submitCoupleCardsAccess(): Promise<void> {
+  if (!coupleCardsKey.value.trim()) {
+    return;
+  }
+
+  isAccessModalOpen.value = false;
+
+  await router.push({
+    name: 'couple-cards',
+    query: { key: coupleCardsKey.value.trim() },
+  });
+}
 </script>
 
 <template>
   <header>
-    <!-- DESKTOP -->
     <div class="desktop-header">
       <div class="page-container header-content">
         <div class="brand">Jacqueline e Marcello</div>
@@ -33,16 +57,26 @@ const hasItems = computed(() => cartCount.value > 0);
             class="nav-link cart-link"
             :class="{ 'is-active': isCardPage }"
           >
-            🧾
+            💌
             <span v-if="hasItems" class="cart-badge">
               {{ cartCount }}
             </span>
           </RouterLink>
+
+          <button
+            type="button"
+            class="nav-link nav-button"
+            :class="{ 'is-active': isCoupleCardsPage }"
+            @click="openCoupleCardsModal"
+            aria-label="Cartões dos noivos"
+            title="Cartões dos noivos"
+          >
+            🔐
+          </button>
         </nav>
       </div>
     </div>
 
-    <!-- MOBILE -->
     <nav class="mobile-nav">
       <RouterLink
         to="/"
@@ -65,12 +99,42 @@ const hasItems = computed(() => cartCount.value > 0);
           {{ cartCount }}
         </span>
       </RouterLink>
+
+      <button
+        type="button"
+        class="mobile-link mobile-button"
+        :class="{ 'is-active': isCoupleCardsPage }"
+        @click="openCoupleCardsModal"
+        aria-label="Cartões dos noivos"
+      >
+        <span class="icon">🔐</span>
+        <span class="label">Noivos</span>
+      </button>
     </nav>
+
+    <Modal v-model="isAccessModalOpen" title="Acesso dos noivos">
+      <form class="access-form" @submit.prevent="submitCoupleCardsAccess">
+        <p class="access-text">
+          Digite a chave para acessar a área com os cartões enviados.
+        </p>
+
+        <Input
+          v-model="coupleCardsKey"
+          label="Chave de acesso"
+          placeholder="Digite a chave"
+          type="password"
+          :required="true"
+        />
+
+        <Button type="submit" fullWidth>
+          Entrar na área dos noivos
+        </Button>
+      </form>
+    </Modal>
   </header>
 </template>
 
 <style scoped>
-/* DESKTOP */
 .desktop-header {
   position: fixed;
   inset: 0 0 auto 0;
@@ -108,6 +172,14 @@ const hasItems = computed(() => cartCount.value > 0);
   transition: color 0.2s;
 }
 
+.nav-button,
+.mobile-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+}
+
 .nav-link:hover,
 .nav-link.is-active {
   color: var(--color-primary);
@@ -117,7 +189,6 @@ const hasItems = computed(() => cartCount.value > 0);
   position: relative;
 }
 
-/* MOBILE */
 .mobile-nav {
   position: fixed;
   bottom: 0;
@@ -126,48 +197,39 @@ const hasItems = computed(() => cartCount.value > 0);
   z-index: 30;
   height: 72px;
   display: none;
-
   border-top: 1px solid var(--color-surface-border);
   background: color-mix(in srgb, white 92%, transparent);
   backdrop-filter: blur(10px);
 }
 
-/* item */
 .mobile-link {
   flex: 1;
   position: relative;
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 4px;
-
   text-decoration: none;
   color: var(--color-text-muted);
-
   transition: all 0.2s ease;
 }
 
-/* ícone */
 .icon {
   font-size: 1.4rem;
   line-height: 1;
 }
 
-/* label */
 .label {
   font-size: 0.72rem;
   letter-spacing: 0.3px;
 }
 
-/* ativo */
 .mobile-link.is-active {
   color: var(--color-primary);
   font-weight: 600;
 }
 
-/* indicador */
 .mobile-link.is-active::after {
   content: '';
   position: absolute;
@@ -178,12 +240,10 @@ const hasItems = computed(() => cartCount.value > 0);
   background: var(--color-primary);
 }
 
-/* toque */
 .mobile-link:active {
   transform: scale(0.95);
 }
 
-/* BADGE (desktop) */
 .cart-badge {
   position: absolute;
   top: -6px;
@@ -200,13 +260,21 @@ const hasItems = computed(() => cartCount.value > 0);
   font-weight: bold;
 }
 
-/* BADGE MOBILE */
 .mobile-badge {
   top: 6px;
   right: 28%;
 }
 
-/* RESPONSIVO */
+.access-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.access-text {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
 @media (max-width: 768px) {
   .desktop-header {
     display: none;

@@ -66,7 +66,7 @@ const props = withDefaults(
 /* variantes */
 .ui-button--primary {
   background: var(--color-primary-soft);
-  color: #3b2f00;
+  color: #ffffff;
 }
 
 .ui-button--primary:hover:not(:disabled) {
@@ -74,9 +74,9 @@ const props = withDefaults(
 }
 
 .ui-button--ghost {
-  background: transparent;
-  color: var(--color-primary);
-  border: 1px solid var(--color-surface-border);
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
 }
 
 .ui-button--full {

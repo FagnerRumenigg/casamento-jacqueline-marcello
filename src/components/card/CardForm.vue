@@ -8,11 +8,9 @@ import Select from '../ui/Select.vue';
 import Textarea from '../ui/Textarea.vue';
 import ImageCarousel from './ImageCarousel.vue';
 
-// MODELS
 const guestName = defineModel<string>('guestName', { default: '' });
 const message = defineModel<string>('message', { default: '' });
 const styleId = defineModel<string>('styleId', { default: '' });
-
 const backgroundColor = defineModel<string>('backgroundColor', {
   default: '#fff6d9',
 });
@@ -22,13 +20,19 @@ const backgroundImage = defineModel<string>('backgroundImage', {
 const backgroundMode = defineModel<'color' | 'image'>('backgroundMode', {
   default: 'color',
 });
-
 const textColor = defineModel<string>('textColor', { default: '#2f2500' });
+const textBackgroundColor = defineModel<string>('textBackgroundColor', {
+  default: '#ffffff',
+});
+const textBackgroundOpacity = defineModel<number>('textBackgroundOpacity', {
+  default: 0.5,
+});
 const fontFamily = defineModel<string>('fontFamily', {
   default: "'Noto Serif', serif",
 });
 const isBold = defineModel<boolean>('isBold', { default: false });
 const isItalic = defineModel<boolean>('isItalic', { default: false });
+
 const isHelpOpen = ref(false);
 const imageFieldRef = ref<HTMLElement | null>(null);
 const showUnlockNotice = ref(false);
@@ -37,8 +41,6 @@ const previousEasterImages = ref<string[]>([]);
 const props = defineProps<{
   styles: CardStyle[];
   isDownloading: boolean;
-
-  // 🔥 imagens vindas do pai
   availableImages: {
     label: string;
     image: string;
@@ -50,13 +52,13 @@ const emit = defineEmits<{
   download: [];
 }>();
 
-// 🎯 opções de estilo
 const styleOptions = computed(() =>
   props.styles.map((style) => ({
     label: style.label,
     value: style.id,
   })),
 );
+
 const easterCount = computed(
   () => props.availableImages.filter((img) => img.type === 'easter').length,
 );
@@ -96,13 +98,11 @@ watch(
   { immediate: true },
 );
 
-// 🎯 seleção de imagem
 function handleSelectImage(image: string) {
   backgroundMode.value = 'image';
   backgroundImage.value = image;
 }
 
-// 🚀 download
 function handleDownload(): void {
   emit('download');
 }
@@ -112,16 +112,9 @@ function handleDownload(): void {
   <Card>
     <form class="form card-form" @submit.prevent="handleDownload">
       <h2 class="card-form-title">Personalize seu cartão</h2>
-      <button
-        type="button"
-        class="secret-help-btn"
-        @click="isHelpOpen = true"
-        aria-label="Dicas secretas"
-      >
-        Dicas secretas
-      </button>
-
-      <!-- NOME -->
+      <div class="card-form-intro">
+        <slot name="intro" />
+      </div>
       <div class="field">
         <Input
           v-model="guestName"
@@ -131,7 +124,6 @@ function handleDownload(): void {
         />
       </div>
 
-      <!-- MENSAGEM -->
       <div class="field">
         <Textarea
           v-model="message"
@@ -141,7 +133,6 @@ function handleDownload(): void {
         />
       </div>
 
-      <!-- ESTILO -->
       <div v-if="backgroundMode === 'color'" class="field">
         <Select
           v-model="styleId"
@@ -150,16 +141,26 @@ function handleDownload(): void {
         />
       </div>
 
-      <!-- 🎨 modo fundo -->
       <div class="field background-mode-field">
-        <label class="section-label">Fundo do cartão</label>
+        <div class="section-heading">
+          <label class="section-label">Fundo do cartão</label>
+          <button
+            v-if="backgroundMode === 'image'"
+            type="button"
+            class="secret-help-btn"
+            @click="isHelpOpen = true"
+            aria-label="Dicas secretas"
+          >
+            Dicas secretas
+          </button>
+        </div>
         <div class="background-mode-row">
           <label>
-            <input type="radio" v-model="backgroundMode" value="color" />
+            <input v-model="backgroundMode" type="radio" value="color" />
             Cor sólida
           </label>
           <label>
-            <input type="radio" v-model="backgroundMode" value="image" />
+            <input v-model="backgroundMode" type="radio" value="image" />
             Foto de fundo
           </label>
         </div>
@@ -172,16 +173,14 @@ function handleDownload(): void {
         </p>
       </div>
 
-      <!-- 🎨 cor fundo -->
       <div v-if="backgroundMode === 'color'" class="field">
         <label class="section-label">Cor de fundo</label>
         <div class="color-field">
-          <input type="color" v-model="backgroundColor" />
-          <input type="text" v-model="backgroundColor" />
+          <input v-model="backgroundColor" type="color" />
+          <input v-model="backgroundColor" type="text" />
         </div>
       </div>
 
-      <!-- 🖼️ CARROSSEL -->
       <div v-if="backgroundMode === 'image'" ref="imageFieldRef" class="field">
         <p v-if="showUnlockNotice || hasEaster" class="unlock-hint">
           {{
@@ -197,16 +196,34 @@ function handleDownload(): void {
         />
       </div>
 
-      <!-- 🎨 cor texto -->
       <div class="field">
         <label>Cor do texto</label>
         <div class="color-field">
-          <input type="color" v-model="textColor" />
-          <input type="text" v-model="textColor" />
+          <input v-model="textColor" type="color" />
+          <input v-model="textColor" type="text" />
         </div>
       </div>
 
-      <!-- ✍️ tipografia -->
+      <div v-if="backgroundMode === 'image'" class="field">
+        <label>Fundo do texto</label>
+        <div class="color-field">
+          <input v-model="textBackgroundColor" type="color" />
+          <input v-model="textBackgroundColor" type="text" />
+        </div>
+
+        <label class="range-label">
+          Opacidade do fundo
+          <span>{{ textBackgroundOpacity.toFixed(2) }}</span>
+        </label>
+        <input
+          v-model.number="textBackgroundOpacity"
+          type="range"
+          min="0"
+          max="1"
+          step="0.05"
+        />
+      </div>
+
       <div class="field">
         <Select
           v-model="fontFamily"
@@ -226,14 +243,17 @@ function handleDownload(): void {
         />
 
         <div class="font-style-row">
-          <label><input type="checkbox" v-model="isBold" /> Negrito</label>
-          <label><input type="checkbox" v-model="isItalic" /> Itálico</label>
+          <label><input v-model="isBold" type="checkbox" /> Negrito</label>
+          <label><input v-model="isItalic" type="checkbox" /> Itálico</label>
         </div>
       </div>
 
-      <!-- DOWNLOAD -->
-      <button class="download-btn" :disabled="props.isDownloading">
-        {{ props.isDownloading ? 'Gerando...' : 'Baixar cartão' }}
+      <button type="submit" class="download-btn" :disabled="props.isDownloading">
+        {{
+          props.isDownloading
+            ? 'Enviando cartão...'
+            : 'Enviar cartão aos noivos'
+        }}
       </button>
     </form>
 
@@ -251,10 +271,7 @@ function handleDownload(): void {
         <li>Quando a melhor resposta é: "prefiro não opinar".</li>
         <li>Quando bate o sono e só uma bebida resolve.</li>
         <li>Aquela resposta curta de quem não leva desaforo.</li>
-        <li>
-          Quando você olha ao redor sem entender nada e só consegue dizer:
-          "corre aqui".
-        </li>
+        <li>Quando você olha ao redor sem entender nada e só consegue dizer: "corre aqui".</li>
         <li>O som da frustração repetida em três sílabas.</li>
         <li>O sussurro de quem pede harmonia e paz.</li>
         <li>Quando pedir um pouco a mais é sempre a melhor opção.</li>
@@ -284,6 +301,12 @@ function handleDownload(): void {
   font-size: 1.2rem;
 }
 
+.card-form-intro {
+  margin-top: -0.25rem;
+  color: var(--color-text-muted);
+  white-space: pre-line;
+}
+
 .field {
   display: grid;
   gap: 0.45rem;
@@ -306,6 +329,17 @@ function handleDownload(): void {
 
 .background-mode-field {
   gap: 0.6rem;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.section-label {
+  margin: 0;
 }
 
 .mode-hint {
@@ -355,6 +389,13 @@ function handleDownload(): void {
   gap: 0.6rem;
 }
 
+.range-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
 .download-btn {
   margin-top: 0.25rem;
   height: 44px;
@@ -362,8 +403,8 @@ function handleDownload(): void {
   border-radius: 12px;
   font-weight: 700;
   font-size: 0.94rem;
-  color: #fff;
-  background: linear-gradient(135deg, #1d8f72, #2f6dff);
+  color: #ffffff;
+  background: #000000;
   cursor: pointer;
   transition:
     transform 0.15s ease,
@@ -381,14 +422,12 @@ function handleDownload(): void {
 }
 
 .secret-help-btn {
-  position: absolute;
-  top: -2px;
-  right: 0;
+  flex-shrink: 0;
   height: 30px;
   border-radius: 999px;
-  border: 1px solid var(--color-surface-border);
-  background: var(--color-surface);
-  color: var(--color-text-muted);
+  border: 1px solid #000000;
+  background: #000000;
+  color: #ffffff;
   font-size: 0.76rem;
   padding: 0 0.65rem;
   font-weight: 700;

@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Merriweather:wght@400;700&family=Noto+Serif:ital,wght@0,400;0,500;1,400&family=Nunito+Sans:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap');
 
 :root {
-  --color-background: #faf9f6;
+  --color-background: #e3dfdc;
   --color-surface: #ffffff;
   --color-surface-muted: #f4f3f1;
   --color-surface-border: #e3e2e0;
   --color-text: #1a1c1a;
   --color-text-muted: #4d4635;
-  --color-primary: #735c00;
-  --color-primary-soft: #d4af37;
-  --color-primary-soft-hover: #e9c349;
+  --color-primary: #000000;
+  --color-primary-soft: #000000;
+  --color-primary-soft-hover: #1a1a1a;
   --color-accent: #576158;
   --color-danger: #ba1a1a;
 

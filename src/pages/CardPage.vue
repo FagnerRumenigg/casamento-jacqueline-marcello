@@ -1,40 +1,66 @@
 <script setup lang="ts">
 import html2canvas from 'html2canvas';
+import QRCode from 'qrcode';
 import { computed, reactive, ref, watch } from 'vue';
 
 import CardForm from '../components/card/CardForm.vue';
 import CardPreview from '../components/card/CardPreview.vue';
-
+import PageHero from '../components/layout/PageHero.vue';
+import Modal from '../components/ui/Modal.vue';
+import Card from '../components/ui/Card.vue';
+import { useEasterEgg } from '../composables/useEasterEgg';
 import { useUniqueCartGiftNames } from '../composables/useUniqueCartGiftNames';
 import { useGiftCart } from '../stores/giftCart';
-import { useEasterEgg } from '../composables/useEasterEgg';
-
-import Modal from '../components/ui/Modal.vue';
-import Button from '../components/ui/Button.vue';
-import Card from '../components/ui/Card.vue';
-
 import type { CardFormState, CardStyle } from '../types/card';
-
-// 💰 PIX
-import QRCode from 'qrcode';
+import { uploadCardToCloudinary } from '../utils/cloudinary';
 import { generatePixPayload } from '../utils/pix';
 
-// 🛒 STORE
 const giftCart = useGiftCart();
-const { cartItems, cartTotal, addGift, removeGift } = giftCart;
+const { cartItems, cartTotal, addGift, decreaseGift, removeGift } = giftCart;
+const currencyFormatter = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+});
 
 const uniqueGiftNames = useUniqueCartGiftNames();
 
-// 🖼️ GIFT IMAGES: apenas presentes escolhidos no carrinho
 const giftImages = computed(() =>
-  cartItems.value.map((item) => ({
-    label: item.gift.name,
-    image: item.gift.imageUrl,
-    type: 'gift' as const,
-  })),
+  cartItems.value
+    .filter((item) => !!item.gift.imageUrl)
+    .map((item) => ({
+      label: item.gift.name,
+      image: item.gift.imageUrl,
+      type: 'gift' as const,
+    })),
 );
 
-// 🖼️ COMBINAÇÃO FINAL DO CAROUSEL
+const form = reactive<CardFormState>({
+  guestName: '',
+  message: '',
+  styleId: 'classic',
+  backgroundColor: '#ffffff',
+  backgroundImage: '',
+  backgroundMode: 'color',
+  textColor: '#000000',
+  textBackgroundColor: '#ffffff',
+  textBackgroundOpacity: 0.5,
+  fontFamily: "'Noto Serif', serif",
+  isBold: false,
+  isItalic: false,
+});
+
+const { easterEggImages } = useEasterEgg(computed(() => form.message));
+const cardDescription = `Agora você pode personalizar o seu cartão! 🖤
+
+Mas atenção: escondemos alguns easter eggs para os cronicamente online, como o noivo.
+Você conhece algum meme famoso? Experimente escrever uma frase icônica na sua mensagem para os noivos.
+
+Por exemplo:
+Não sou capaz de opinar.
+É verdade esse bilete.
+
+Quem sabe você não desbloqueia um cartão surpresa? 😉`;
+
 const easterImages = computed(() =>
   easterEggImages.value.map((image, index) => ({
     label: `Secreto ${index + 1}`,
@@ -43,12 +69,8 @@ const easterImages = computed(() =>
   })),
 );
 
-const availableImages = computed(() => [
-  ...giftImages.value,
-  ...easterImages.value,
-]);
+const availableImages = computed(() => [...giftImages.value, ...easterImages.value]);
 
-// 🎨 estilos
 const cardStyles: CardStyle[] = [
   {
     id: 'classic',
@@ -66,31 +88,18 @@ const cardStyles: CardStyle[] = [
   },
 ];
 
-// 🧠 FORM
-const form = reactive<CardFormState>({
-  guestName: '',
-  message: '',
-  styleId: cardStyles[0].id,
-
-  backgroundColor: '#ffffff',
-  backgroundImage: '',
-  backgroundMode: 'color',
-
-  textColor: '#000000',
-  fontFamily: "'Noto Serif', serif",
-  isBold: false,
-  isItalic: false,
-});
-
-// ✨ EASTER EGGS
-const { easterEggImages } = useEasterEgg(computed(() => form.message));
-
-const previewRef = ref<any>(null);
+const previewRef = ref<{ getElement: () => HTMLElement | null } | null>(null);
 const backgroundRatio = ref<number | null>(null);
+const qrCodeUrl = ref('');
+const isGenerating = ref(false);
+const errorMessage = ref('');
+const isDownloading = ref(false);
+const isModalOpen = ref(false);
+const modalTitle = ref('');
+const modalMessage = ref('');
 
-// 🎯 estilo ativo
 const activeStyle = computed(
-  () => cardStyles.find((s) => s.id === form.styleId) || cardStyles[0],
+  () => cardStyles.find((style) => style.id === form.styleId) || cardStyles[0],
 );
 
 const shouldStackPreview = computed(
@@ -110,11 +119,13 @@ watch(
     }
 
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.onload = () => {
       if (!img.naturalWidth || !img.naturalHeight) {
         backgroundRatio.value = null;
         return;
       }
+
       backgroundRatio.value = img.naturalWidth / img.naturalHeight;
     };
     img.onerror = () => {
@@ -128,7 +139,7 @@ watch(
 watch(availableImages, (images) => {
   if (form.backgroundMode !== 'image') return;
 
-  const exists = images.some((img) => img.image === form.backgroundImage);
+  const exists = images.some((image) => image.image === form.backgroundImage);
   if (exists) return;
 
   if (images.length > 0) {
@@ -140,34 +151,67 @@ watch(availableImages, (images) => {
   form.backgroundMode = 'color';
 });
 
-// ----------------------
-// 🛒 CARRINHO
-// ----------------------
-function increase(item: any) {
+watch(cartItems, buildPixCode, { immediate: true });
+
+function showModal(title: string, message: string) {
+  modalTitle.value = title;
+  modalMessage.value = message;
+  isModalOpen.value = true;
+}
+
+function slugifyFileName(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error('Não foi possível converter o cartão em imagem.'));
+        return;
+      }
+
+      resolve(blob);
+    }, 'image/png');
+  });
+}
+
+function downloadBlob(blob: Blob, fileName: string): void {
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = objectUrl;
+  link.download = fileName;
+  link.click();
+
+  window.setTimeout(() => {
+    URL.revokeObjectURL(objectUrl);
+  }, 1000);
+}
+
+function buildMessagePreview(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  return trimmed.length > 140 ? `${trimmed.slice(0, 137)}...` : trimmed;
+}
+
+function increase(item: (typeof cartItems.value)[number]) {
   addGift(item.gift);
 }
 
-function decrease(item: any) {
-  if (item.quantity <= 1) {
-    removeGift(item.gift.id);
-  } else {
-    removeGift(item.gift.id);
-    addGift(item.gift);
-  }
+function decrease(item: (typeof cartItems.value)[number]) {
+  decreaseGift(item.gift.id);
 }
 
-function remove(item: any) {
+function remove(item: (typeof cartItems.value)[number]) {
   removeGift(item.gift.id);
 }
-
-// ----------------------
-// 💰 PIX
-// ----------------------
-const payload = ref('');
-const qrCodeUrl = ref('');
-const isGenerating = ref(false);
-const errorMessage = ref('');
-const copyFeedback = ref('');
 
 async function buildPixCode() {
   isGenerating.value = true;
@@ -178,37 +222,12 @@ async function buildPixCode() {
       amount: cartTotal.value || undefined,
     });
 
-    payload.value = generatedPayload;
     qrCodeUrl.value = await QRCode.toDataURL(generatedPayload);
   } catch {
     errorMessage.value = 'Erro ao gerar Pix.';
   } finally {
     isGenerating.value = false;
   }
-}
-
-async function copyPix() {
-  if (!payload.value) return;
-
-  await navigator.clipboard.writeText(payload.value);
-  copyFeedback.value = 'Copiado!';
-  setTimeout(() => (copyFeedback.value = ''), 1500);
-}
-
-watch(cartItems, buildPixCode, { immediate: true });
-
-// ----------------------
-// 📥 DOWNLOAD
-// ----------------------
-const isDownloading = ref(false);
-const isModalOpen = ref(false);
-const modalTitle = ref('');
-const modalMessage = ref('');
-
-function showModal(title: string, message: string) {
-  modalTitle.value = title;
-  modalMessage.value = message;
-  isModalOpen.value = true;
 }
 
 async function downloadCard() {
@@ -223,19 +242,30 @@ async function downloadCard() {
   isDownloading.value = true;
 
   try {
+    const safeGuestName = slugifyFileName(form.guestName) || 'convidado';
+    const fileName = `cartao-${safeGuestName}.png`;
     const canvas = await html2canvas(el, {
       scale: 2,
       backgroundColor: null,
+      useCORS: true,
+      allowTaint: false,
+    });
+    const blob = await canvasToBlob(canvas);
+    await uploadCardToCloudinary(blob, fileName, {
+      guestName: form.guestName,
+      messagePreview: buildMessagePreview(form.message),
     });
 
-    const link = document.createElement('a');
-    link.href = canvas.toDataURL('image/png');
-    link.download = `cartao-${form.guestName}.png`;
-    link.click();
+    downloadBlob(blob, fileName);
 
-    showModal('Pronto', 'Cartão gerado com sucesso!');
-  } catch {
-    showModal('Erro', 'Falha ao gerar imagem.');
+    showModal(
+      'Pronto',
+      'Seu cartão foi baixado para você ter uma cópia sua e guardar para sempre e também foi enviado para os noivos lerem seus sentimentos. ❤',
+    );
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Falha ao gerar imagem.';
+    showModal('Erro', message);
   } finally {
     isDownloading.value = false;
   }
@@ -244,13 +274,72 @@ async function downloadCard() {
 
 <template>
   <section class="page-container card-page">
-    <header class="intro">
-      <h1 class="page-title">Criação de Cartão</h1>
-      <p class="page-subtitle">Personalize seu cartão 💛.</p>
-    </header>
+    <PageHero title="Criação de Cartão" />
 
     <div class="grid" :class="{ 'grid--preview-top': shouldStackPreview }">
-      <!-- 🖼️ PREVIEW -->
+      <Card class="summary-card grid-panel-summary">
+        <h3>Seu presente</h3>
+
+        <div v-if="cartItems.length === 0" class="empty">
+          Nenhum presente selecionado.
+        </div>
+
+        <ul v-else class="cart-list">
+          <li v-for="item in cartItems" :key="item.gift.id" class="cart-item">
+            <div class="item-info">
+              <span class="item-name">{{ item.gift.name }}</span>
+              <strong class="item-subtotal">
+                {{ currencyFormatter.format(item.gift.price * item.quantity) }}
+              </strong>
+            </div>
+
+            <div class="qty-controls">
+              <button @click="decrease(item)">-</button>
+              <span>{{ item.quantity }}</span>
+              <button @click="increase(item)">+</button>
+            </div>
+
+            <button class="remove-btn" @click="remove(item)">x</button>
+          </li>
+        </ul>
+
+        <div v-if="cartItems.length > 0" class="pix-block">
+          <h4>Pagamentos</h4>
+          <p class="pix-total">Total: {{ currencyFormatter.format(cartTotal) }}</p>
+
+          <div v-if="isGenerating">Gerando QR Code...</div>
+          <p v-else-if="errorMessage">{{ errorMessage }}</p>
+          <template v-else-if="qrCodeUrl">
+            <img :src="qrCodeUrl" class="qr" />
+          </template>
+        </div>
+      </Card>
+
+      <div class="form-stack grid-panel-form">
+        <CardForm
+          v-model:guestName="form.guestName"
+          v-model:message="form.message"
+          v-model:styleId="form.styleId"
+          v-model:backgroundColor="form.backgroundColor"
+          v-model:backgroundImage="form.backgroundImage"
+          v-model:backgroundMode="form.backgroundMode"
+          v-model:textColor="form.textColor"
+          v-model:textBackgroundColor="form.textBackgroundColor"
+          v-model:textBackgroundOpacity="form.textBackgroundOpacity"
+          v-model:fontFamily="form.fontFamily"
+          v-model:isBold="form.isBold"
+          v-model:isItalic="form.isItalic"
+          :styles="cardStyles"
+          :available-images="availableImages"
+          :is-downloading="isDownloading"
+          @download="downloadCard"
+        >
+          <template #intro>
+            <p class="card-description">{{ cardDescription }}</p>
+          </template>
+        </CardForm>
+      </div>
+
       <div class="preview-wrapper grid-panel-preview">
         <CardPreview
           ref="previewRef"
@@ -262,71 +351,17 @@ async function downloadCard() {
           :backgroundImage="form.backgroundImage"
           :backgroundMode="form.backgroundMode"
           :textColor="form.textColor"
+          :textBackgroundColor="form.textBackgroundColor"
+          :textBackgroundOpacity="form.textBackgroundOpacity"
           :fontFamily="form.fontFamily"
           :isBold="form.isBold"
           :isItalic="form.isItalic"
         />
       </div>
-
-      <!-- 🧾 FORM -->
-      <CardForm
-        class="grid-panel-form"
-        v-model:guestName="form.guestName"
-        v-model:message="form.message"
-        v-model:styleId="form.styleId"
-        v-model:backgroundColor="form.backgroundColor"
-        v-model:backgroundImage="form.backgroundImage"
-        v-model:backgroundMode="form.backgroundMode"
-        v-model:textColor="form.textColor"
-        v-model:fontFamily="form.fontFamily"
-        v-model:isBold="form.isBold"
-        v-model:isItalic="form.isItalic"
-        :styles="cardStyles"
-        :available-images="availableImages"
-        :is-downloading="isDownloading"
-        @download="downloadCard"
-      />
-
-      <!-- 🛒 + 💰 -->
-      <Card class="summary-card grid-panel-summary">
-        <h3>Seu presente</h3>
-
-        <div v-if="cartItems.length === 0" class="empty">
-          Nenhum presente selecionado 😅
-        </div>
-
-        <ul v-else class="cart-list">
-          <li v-for="item in cartItems" :key="item.gift.id" class="cart-item">
-            <span class="item-name">{{ item.gift.name }}</span>
-
-            <div class="qty-controls">
-              <button @click="decrease(item)">-</button>
-              <span>{{ item.quantity }}</span>
-              <button @click="increase(item)">+</button>
-            </div>
-
-            <button class="remove-btn" @click="remove(item)">✕</button>
-          </li>
-        </ul>
-
-        <div v-if="cartItems.length > 0" class="pix-block">
-          <h4>Pagamento</h4>
-
-          <textarea v-if="payload" :value="payload" readonly rows="3" />
-
-          <div v-if="isGenerating">Gerando QR Code...</div>
-          <p v-else-if="errorMessage">{{ errorMessage }}</p>
-
-          <img v-else-if="qrCodeUrl" :src="qrCodeUrl" class="qr" />
-
-          <Button @click="copyPix">Copiar código Pix</Button>
-          <p v-if="copyFeedback">{{ copyFeedback }}</p>
-        </div>
-      </Card>
     </div>
 
     <Modal v-model="isModalOpen" :title="modalTitle">
-      <p>{{ modalMessage }}</p>
+      <p style="white-space: pre-line">{{ modalMessage }}</p>
     </Modal>
   </section>
 </template>
@@ -337,25 +372,10 @@ async function downloadCard() {
   gap: 1.5rem;
 }
 
-.intro {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.page-title {
-  margin: 0;
-  font-size: clamp(1.5rem, 2.8vw, 2rem);
-}
-
-.page-subtitle {
-  margin: 0;
-  opacity: 0.85;
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-areas: 'preview form summary';
+  grid-template-areas: 'summary form preview';
   gap: 1rem;
   align-items: start;
 }
@@ -379,9 +399,21 @@ async function downloadCard() {
 .grid--preview-top {
   grid-template-columns: 1fr;
   grid-template-areas:
-    'preview'
+    'summary'
     'form'
-    'summary';
+    'preview';
+}
+
+.form-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.card-description {
+  margin: 0;
+  text-align: center;
+  color: var(--color-text-muted);
+  white-space: pre-line;
 }
 
 .preview-wrapper {
@@ -390,14 +422,14 @@ async function downloadCard() {
 }
 
 @media (min-width: 1151px) {
-  .grid-panel-preview,
-  .grid-panel-summary {
+  .grid-panel-summary,
+  .grid-panel-preview {
     position: sticky;
     top: calc(var(--header-height) + 12px);
   }
 
-  .grid--preview-top .grid-panel-preview,
-  .grid--preview-top .grid-panel-summary {
+  .grid--preview-top .grid-panel-summary,
+  .grid--preview-top .grid-panel-preview {
     position: static;
     top: auto;
   }
@@ -433,8 +465,19 @@ async function downloadCard() {
   align-items: center;
 }
 
+.item-info {
+  display: grid;
+  gap: 0.2rem;
+}
+
 .item-name {
   font-size: 0.92rem;
+}
+
+.item-subtotal {
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: 1rem;
 }
 
 .qty-controls {
@@ -445,8 +488,9 @@ async function downloadCard() {
 
 .qty-controls button,
 .remove-btn {
-  border: 1px solid var(--color-surface-border);
-  background: var(--color-surface);
+  border: 1px solid #000000;
+  background: #000000;
+  color: #ffffff;
   border-radius: 8px;
   cursor: pointer;
   height: 30px;
@@ -455,11 +499,14 @@ async function downloadCard() {
 
 .pix-block {
   display: grid;
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 
-.pix-block textarea {
-  width: 100%;
+.pix-total {
+  margin: 0;
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
 }
 
 .qr {
@@ -471,12 +518,13 @@ async function downloadCard() {
 }
 
 @media (max-width: 1150px) {
-  .grid {
+  .grid,
+  .grid--preview-top {
     grid-template-columns: 1fr;
     grid-template-areas:
-      'preview'
+      'summary'
       'form'
-      'summary';
+      'preview';
   }
 }
 </style>

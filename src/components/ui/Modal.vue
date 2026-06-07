@@ -85,6 +85,8 @@ function closeModal(): void {
   margin-bottom: var(--space-4);
   color: var(--color-text-muted);
   line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   max-height: 60vh;
   overflow-y: auto;
   padding-right: var(--space-2);
@@ -126,5 +128,32 @@ function closeModal(): void {
 .modal-leave-to {
   opacity: 0;
   transform: translateY(10px) scale(0.97);
+}
+
+@media (max-width: 640px) {
+  .modal-backdrop {
+    padding: var(--space-3);
+    place-items: center;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: min(80vh, 640px);
+    padding: var(--space-5);
+    border-radius: 20px 20px 16px 16px;
+  }
+
+  .modal__header h2 {
+    font-size: 1.25rem;
+  }
+
+  .modal__content {
+    max-height: 50vh;
+    padding-right: 0;
+  }
+
+  .modal__footer {
+    margin-top: var(--space-4);
+  }
 }
 </style>

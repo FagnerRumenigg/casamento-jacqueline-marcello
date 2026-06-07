@@ -68,6 +68,22 @@ function removeGift(giftId: string): void {
   persistCart();
 }
 
+function decreaseGift(giftId: string): void {
+  const existing = cartItems.value.find((item) => item.gift.id === giftId);
+
+  if (!existing) {
+    return;
+  }
+
+  if (existing.quantity <= 1) {
+    removeGift(giftId);
+    return;
+  }
+
+  existing.quantity -= 1;
+  persistCart();
+}
+
 function clearCart(): void {
   cartItems.value = [];
   persistCart();
@@ -111,6 +127,7 @@ export function useGiftCart() {
     selectedGift,
     hasItems,
     addGift,
+    decreaseGift,
     removeGift,
     clearCart,
   };

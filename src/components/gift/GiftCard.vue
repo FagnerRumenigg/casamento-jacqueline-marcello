@@ -9,6 +9,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   presentear: [gift: Gift];
+  preview: [gift: Gift];
 }>();
 
 const formatter = new Intl.NumberFormat('pt-BR', {
@@ -19,16 +20,29 @@ const formatter = new Intl.NumberFormat('pt-BR', {
 function handleGiftClick(): void {
   emit('presentear', props.gift);
 }
+
+function handlePreviewClick(): void {
+  if (!props.gift.imageUrl) return;
+  emit('preview', props.gift);
+}
 </script>
 
 <template>
   <Card class="gift-card">
-    <div class="gift-card__image-wrap">
+    <div
+      class="gift-card__image-wrap"
+      :class="{ 'gift-card__image-wrap--clickable': props.gift.imageUrl }"
+      @click="handlePreviewClick"
+    >
       <img
+        v-if="props.gift.imageUrl"
         :src="props.gift.imageUrl"
         :alt="props.gift.name"
         class="gift-card__image"
       />
+      <div v-else class="gift-card__image-placeholder">
+        Imagem em breve
+      </div>
     </div>
 
     <div class="gift-card__content">
@@ -62,12 +76,32 @@ function handleGiftClick(): void {
   aspect-ratio: 4 / 3;
   overflow: hidden;
   background: var(--color-surface-muted);
+  border: none;
+  padding: 0;
+  width: 100%;
+}
+
+.gift-card__image-wrap--clickable {
+  cursor: zoom-in;
 }
 
 .gift-card__image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.gift-card__image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .gift-card__content {

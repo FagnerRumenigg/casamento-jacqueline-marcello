@@ -1,15 +1,14 @@
 import { computed } from 'vue';
 import { useGiftCart } from '../stores/giftCart';
-import { gifts } from '../data/gifts';
 
 export function useUniqueCartGiftData() {
   const { cartItems } = useGiftCart();
   return computed(() => {
     const seen = new Set<string>();
     return cartItems.value
-      .map((item) => gifts.find((g) => g.name === item.gift.name))
+      .map((item) => item.gift)
       .filter((gift) => {
-        if (!gift || seen.has(gift.id)) return false;
+        if (seen.has(gift.id)) return false;
         seen.add(gift.id);
         return true;
       });

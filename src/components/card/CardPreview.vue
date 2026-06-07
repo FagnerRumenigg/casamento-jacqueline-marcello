@@ -13,6 +13,8 @@ const props = defineProps<{
   backgroundImage: string;
   backgroundMode: 'color' | 'image';
   textColor: string;
+  textBackgroundColor: string;
+  textBackgroundOpacity: number;
   fontFamily: string;
   isBold: boolean;
   isItalic: boolean;
@@ -31,11 +33,13 @@ watch(
     }
 
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.onload = () => {
       if (!img.naturalWidth || !img.naturalHeight) {
         imageRatio.value = null;
         return;
       }
+
       imageRatio.value = img.naturalWidth / img.naturalHeight;
     };
     img.onerror = () => {
@@ -46,15 +50,26 @@ watch(
   { immediate: true },
 );
 
-// 🎨 estilo dinâmico (AGORA BURRO E FELIZ)
+function hexToRgba(hex: string): string {
+  const normalized = hex.replace('#', '');
+  const safeHex =
+    normalized.length === 3
+      ? normalized
+          .split('')
+          .map((char) => `${char}${char}`)
+          .join('')
+      : normalized.padEnd(6, 'f').slice(0, 6);
+
+  const red = Number.parseInt(safeHex.slice(0, 2), 16);
+  const green = Number.parseInt(safeHex.slice(2, 4), 16);
+  const blue = Number.parseInt(safeHex.slice(4, 6), 16);
+  const alpha = Math.min(1, Math.max(0, props.textBackgroundOpacity));
+
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
 const dynamicStyle = computed(() => {
-  let bg = props.backgroundColor || '#ffffff';
-
-  if (props.backgroundMode === 'image' && props.backgroundImage) {
-    bg = `url('${props.backgroundImage}') center/contain no-repeat`;
-  }
-
-  const shapeStyles: Record<string, any> = {
+  const shapeStyles: Record<string, Record<string, string>> = {
     square: { borderRadius: '16px' },
     rounded: { borderRadius: '24px' },
     pill: { borderRadius: '999px' },
@@ -62,12 +77,17 @@ const dynamicStyle = computed(() => {
   };
 
   return {
-    background: bg,
+    backgroundColor:
+      props.backgroundMode === 'image'
+        ? '#ffffff'
+        : props.backgroundColor || '#ffffff',
     color: props.textColor || '#000000',
     borderColor: props.selectedStyle?.border || '#ccc',
     fontFamily: props.fontFamily,
     fontStyle: props.isItalic ? 'italic' : 'normal',
     fontWeight: props.isBold ? '700' : '400',
+    '--card-font-weight': props.isBold ? '700' : '400',
+    '--card-font-weight-strong': props.isBold ? '700' : '600',
     ...(props.backgroundMode === 'image' && imageRatio.value
       ? { aspectRatio: `${imageRatio.value} / 1`, minHeight: 'unset' }
       : {}),
@@ -75,19 +95,29 @@ const dynamicStyle = computed(() => {
   };
 });
 
-const guestLabel = computed(() => props.guestName.trim() || 'Seu nome aqui');
+const textPanelStyle = computed(() => {
+  if (props.backgroundMode !== 'image' || !props.backgroundImage) {
+    return {};
+  }
 
+  return {
+    background: hexToRgba(props.textBackgroundColor || '#ffffff'),
+  };
+});
+
+const guestLabel = computed(() => props.guestName.trim() || 'Seu nome aqui');
 const messageLabel = computed(
   () => props.message.trim() || 'Sua mensagem especial aparecerá aqui.',
 );
-
 const hasGifts = computed(() => !!props.giftsNames?.length);
+const hasBackgroundImage = computed(
+  () => props.backgroundMode === 'image' && !!props.backgroundImage,
+);
+
 const previewShapeClass = computed(() => {
   const shape = props.selectedStyle?.shape || 'square';
-  const hasImageClass =
-    props.backgroundMode === 'image' && props.backgroundImage
-      ? 'card-preview--with-image'
-      : '';
+  const hasImageClass = hasBackgroundImage.value ? 'card-preview--with-image' : '';
+
   return [`card-preview--${shape}`, hasImageClass];
 });
 
@@ -108,30 +138,39 @@ defineExpose({ getElement });
       :class="previewShapeClass"
       :style="dynamicStyle"
     >
-      <!-- TÍTULO -->
-      <p class="card-preview__kicker">🎉 Experiência Ativada</p>
+      <img
+        v-if="hasBackgroundImage"
+        :src="props.backgroundImage"
+        alt=""
+        class="card-preview__bg-image"
+        crossorigin="anonymous"
+      />
 
-      <!-- PRESENTES -->
-      <ul v-if="hasGifts" class="card-gift-list">
-        <li v-for="gift in uniqueGiftData" :key="gift?.id">
-          {{ gift?.dynamicMessage }}
-        </li>
-      </ul>
+      <div
+        class="card-preview__text-panel"
+        :class="{ 'card-preview__text-panel--on-image': hasBackgroundImage }"
+        :style="textPanelStyle"
+      >
+        <p class="card-preview__kicker">Experiência ativada</p>
 
-      <h3 v-else>Nenhum presente selecionado</h3>
+        <ul v-if="hasGifts" class="card-gift-list">
+          <li v-for="gift in uniqueGiftData" :key="gift.id">
+            {{ gift.dynamicMessage }}
+          </li>
+        </ul>
 
-      <!-- FRASE -->
-      <p v-if="hasGifts" class="card-preview__intro">
-        Esse momento foi escolhido por:
-      </p>
+        <h3 v-else>Nenhum presente selecionado</h3>
 
-      <!-- NOME -->
-      <p class="card-preview__guest">{{ guestLabel }}</p>
+        <p v-if="hasGifts" class="card-preview__intro">
+          Esse momento foi escolhido por:
+        </p>
 
-      <!-- MENSAGEM -->
-      <div class="card-preview__message-block">
-        <span class="card-preview__message-label"> 💌 Recado especial: </span>
-        <p class="card-preview__message">{{ messageLabel }}</p>
+        <p class="card-preview__guest">{{ guestLabel }}</p>
+
+        <div class="card-preview__message-block">
+          <span class="card-preview__message-label">Recado especial:</span>
+          <p class="card-preview__message">{{ messageLabel }}</p>
+        </div>
       </div>
     </div>
   </Card>
@@ -156,11 +195,37 @@ defineExpose({ getElement });
   color: #000;
 }
 
+.card-preview__bg-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 0;
+}
+
+.card-preview__text-panel {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: var(--space-3);
+  width: min(100%, 560px);
+  margin-inline: auto;
+}
+
+.card-preview__text-panel--on-image {
+  padding: clamp(0.9rem, 2vw, 1.2rem);
+  border-radius: 18px;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.12);
+}
+
 .card-preview--pill,
 .card-preview--circle {
   padding: var(--space-6);
 }
 
+.card-preview--pill .card-preview__text-panel,
+.card-preview--circle .card-preview__text-panel,
 .card-preview--pill .card-gift-list,
 .card-preview--circle .card-gift-list,
 .card-preview--pill .card-gift-list li,
@@ -189,7 +254,6 @@ defineExpose({ getElement });
   min-height: 320px;
 }
 
-/* overlay pra legibilidade */
 .card-preview::before {
   content: '';
   position: absolute;
@@ -202,32 +266,26 @@ defineExpose({ getElement });
   display: none;
 }
 
-/* garante conteúdo acima */
-.card-preview * {
-  position: relative;
-  z-index: 2;
-}
-
-/* tipografia */
 .card-preview__kicker {
   font-size: 1.2rem;
-  font-weight: 700;
+  font-weight: var(--card-font-weight-strong);
 }
 
 .card-gift-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  font-weight: 700;
+  font-weight: var(--card-font-weight-strong);
 }
 
 .card-preview__intro {
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: var(--card-font-weight-strong);
 }
 
 .card-preview__guest {
   font-size: 1.1rem;
+  font-weight: var(--card-font-weight);
 }
 
 .card-preview__message-block {
@@ -238,10 +296,27 @@ defineExpose({ getElement });
 
 .card-preview__message-label {
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: var(--card-font-weight-strong);
 }
 
 .card-preview__message {
   font-size: 0.95rem;
+  font-weight: var(--card-font-weight);
+}
+
+@media (max-width: 640px) {
+  .card-preview {
+    padding: var(--space-6);
+    align-content: start;
+  }
+
+  .card-preview--with-image {
+    aspect-ratio: auto !important;
+    min-height: 420px;
+  }
+
+  .card-preview__text-panel {
+    width: 100%;
+  }
 }
 </style>

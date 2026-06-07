@@ -12,13 +12,7 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background:
-    radial-gradient(
-      circle at top right,
-      #fff8dd 0%,
-      var(--color-background) 36%
-    ),
-    var(--color-background);
+  background: var(--color-background);
   color: var(--color-text);
   font-family: var(--font-body);
 }
