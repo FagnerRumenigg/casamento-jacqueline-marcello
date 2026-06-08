@@ -8,6 +8,7 @@ import CardPreview from '../components/card/CardPreview.vue';
 import PageHero from '../components/layout/PageHero.vue';
 import Modal from '../components/ui/Modal.vue';
 import Card from '../components/ui/Card.vue';
+import Button from '../components/ui/Button.vue';
 import { useEasterEgg } from '../composables/useEasterEgg';
 import { useUniqueCartGiftNames } from '../composables/useUniqueCartGiftNames';
 import { useGiftCart } from '../stores/giftCart';
@@ -61,6 +62,20 @@ Não sou capaz de opinar.
 
 Quem sabe você não desbloqueia um cartão surpresa? 😉`;
 
+const previewDescription = `É aqui que a mágica acontece. ✨
+
+Tudo o que você alterar aparecerá neste cartão em tempo real.
+
+Confira se a mensagem está do jeito que você imaginou, se não esqueceu nenhuma letra e se o meme está no ponto.
+
+Afinal, uma obra-prima merece revisão antes de ir para a galeria dos noivos. 🖤😉`;
+
+const paymentDescription = `Os presentes já estão separados. ✅
+
+Agora é hora de oficializar sua contribuição com o QR Code abaixo.
+
+Assim que terminar, você seguirá para a etapa de personalização do cartão, onde a criatividade (e alguns memes) são muito bem-vindos. 😌 `;
+
 const easterImages = computed(() =>
   easterEggImages.value.map((image, index) => ({
     label: `Secreto ${index + 1}`,
@@ -90,9 +105,11 @@ const cardStyles: CardStyle[] = [
 
 const previewRef = ref<{ getElement: () => HTMLElement | null } | null>(null);
 const backgroundRatio = ref<number | null>(null);
+const payload = ref('');
 const qrCodeUrl = ref('');
 const isGenerating = ref(false);
 const errorMessage = ref('');
+const copyFeedback = ref('');
 const isDownloading = ref(false);
 const isModalOpen = ref(false);
 const modalTitle = ref('');
@@ -222,12 +239,23 @@ async function buildPixCode() {
       amount: cartTotal.value || undefined,
     });
 
-    qrCodeUrl.value = await QRCode.toDataURL(generatedPayload);
+    payload.value = generatedPayload.trim();
+    qrCodeUrl.value = await QRCode.toDataURL(payload.value);
   } catch {
     errorMessage.value = 'Erro ao gerar Pix.';
   } finally {
     isGenerating.value = false;
   }
+}
+
+async function copyPix() {
+  if (!payload.value) return;
+
+  await navigator.clipboard.writeText(payload.value.trim());
+  copyFeedback.value = 'Código Pix copiado!';
+  window.setTimeout(() => {
+    copyFeedback.value = '';
+  }, 1500);
 }
 
 async function downloadCard() {
@@ -304,13 +332,20 @@ async function downloadCard() {
         </ul>
 
         <div v-if="cartItems.length > 0" class="pix-block">
+          <p class="card-description card-description--payment">
+            {{ paymentDescription }}
+          </p>
+
           <h4>Pagamentos</h4>
           <p class="pix-total">Total: {{ currencyFormatter.format(cartTotal) }}</p>
 
           <div v-if="isGenerating">Gerando QR Code...</div>
           <p v-else-if="errorMessage">{{ errorMessage }}</p>
           <template v-else-if="qrCodeUrl">
+            <textarea :value="payload" readonly rows="4" class="pix-code" />
+            <Button @click="copyPix">Copiar código Pix</Button>
             <img :src="qrCodeUrl" class="qr" />
+            <p v-if="copyFeedback" class="copy-feedback">{{ copyFeedback }}</p>
           </template>
         </div>
       </Card>
@@ -335,12 +370,17 @@ async function downloadCard() {
           @download="downloadCard"
         >
           <template #intro>
-            <p class="card-description">{{ cardDescription }}</p>
+            <p class="card-description card-description--form">
+              {{ cardDescription }}
+            </p>
           </template>
         </CardForm>
       </div>
 
-      <div class="preview-wrapper grid-panel-preview">
+      <Card class="preview-wrapper grid-panel-preview">
+        <p class="card-description card-description--preview">
+          {{ previewDescription }}
+        </p>
         <CardPreview
           ref="previewRef"
           :giftsNames="uniqueGiftNames"
@@ -357,7 +397,7 @@ async function downloadCard() {
           :isBold="form.isBold"
           :isItalic="form.isItalic"
         />
-      </div>
+      </Card>
     </div>
 
     <Modal v-model="isModalOpen" :title="modalTitle">
@@ -411,9 +451,18 @@ async function downloadCard() {
 
 .card-description {
   margin: 0;
-  text-align: center;
   color: var(--color-text-muted);
   white-space: pre-line;
+}
+
+.card-description--payment,
+.card-description--form,
+.card-description--preview {
+  padding: 0.2rem 0 0.35rem;
+}
+
+.card-description--preview {
+  text-align: center;
 }
 
 .preview-wrapper {
@@ -515,6 +564,23 @@ async function downloadCard() {
   max-width: 100%;
   border-radius: 8px;
   margin: 0 auto;
+}
+
+.pix-code {
+  width: 100%;
+  border: 1px solid var(--color-surface-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  padding: 0.75rem;
+  resize: none;
+  color: var(--color-text);
+  font: inherit;
+}
+
+.copy-feedback {
+  margin: 0;
+  color: var(--color-text-muted);
+  text-align: center;
 }
 
 @media (max-width: 1150px) {

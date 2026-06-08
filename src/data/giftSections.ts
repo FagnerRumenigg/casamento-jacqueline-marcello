@@ -8,7 +8,7 @@ export interface GiftSection {
 export const giftSections: GiftSection[] = [
   {
     id: 'jack-bem-estar',
-    icon: '🎨',
+    icon: '\u{1F3A8}',
     title: 'Fundo de apoio ao bem-estar, aos hobbies e às tentativas da Jack de ter férias',
     giftIds: [
       'tintas-e-tela',
@@ -28,7 +28,7 @@ export const giftSections: GiftSection[] = [
   },
   {
     id: 'instituto-pesquisas',
-    icon: '🧠',
+    icon: '\u{1F9E0}',
     title: 'Instituto de pesquisas sobre o cérebro do Marcello',
     giftIds: [
       'descobrir-o-que-marcello-tem',
@@ -42,7 +42,7 @@ export const giftSections: GiftSection[] = [
   },
   {
     id: 'hiperfocos',
-    icon: '🎙️',
+    icon: '\u{1F3A4}',
     title: 'Hiperfocos e assuntos que ninguém perguntou',
     giftIds: [
       '17-modelos',
@@ -59,7 +59,7 @@ export const giftSections: GiftSection[] = [
   },
   {
     id: 'humor-jack',
-    icon: '😂',
+    icon: '\u{1F602}',
     title: 'Centro nacional de estudos sobre o humor da Jack (que humor?)',
     giftIds: [
       '5-piadas',
@@ -75,7 +75,7 @@ export const giftSections: GiftSection[] = [
   },
   {
     id: 'apartamento-51',
-    icon: '☕',
+    icon: '\u{2615}',
     title: 'Café, visitas e vida no apartamento 51',
     giftIds: [
       'petisco-para-os-fiscais',
@@ -97,7 +97,7 @@ export const giftSections: GiftSection[] = [
   },
   {
     id: 'moto-sonhos',
-    icon: '🏍️',
+    icon: '\u{1F3CD}',
     title: 'Fundo oficial da moto dos sonhos',
     giftIds: [
       'burnout-rodando-de-moto',
@@ -108,7 +108,7 @@ export const giftSections: GiftSection[] = [
   },
   {
     id: 'lua-de-mel',
-    icon: '🇺🇾',
+    icon: '\u{1F1FA}\u{1F1FE}',
     title: 'Fundo oficial da lua de mel',
     giftIds: [
       'colecao-de-memorias',
@@ -123,5 +123,11 @@ export const giftSections: GiftSection[] = [
       'patrocinio-master-lua-de-mel',
       'sem-notebook-na-lua-de-mel',
     ],
+  },
+  {
+    id: 'outros',
+    icon: '\u{2754}',
+    title: 'Outro',
+    giftIds: ['sua-escolha'],
   },
 ];

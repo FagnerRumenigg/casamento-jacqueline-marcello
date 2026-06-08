@@ -5,4 +5,5 @@ export interface Gift {
   price: number;
   imageUrl: string;
   dynamicMessage: string;
+  isCustomizable?: boolean;
 }

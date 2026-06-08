@@ -135,7 +135,7 @@ onBeforeUnmount(() => {
             class="gift-section__toggle"
             :class="{ 'gift-section__toggle--open': isSectionOpen(section.id) }"
           >
-            ⌄
+            &#8964;
           </span>
         </button>
 
@@ -292,6 +292,11 @@ onBeforeUnmount(() => {
   border-radius: 14px;
   background: color-mix(in srgb, var(--color-surface-muted) 68%, white);
   font-size: 1.4rem;
+  font-family:
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Noto Color Emoji',
+    sans-serif;
   flex-shrink: 0;
 }
 

@@ -678,4 +678,14 @@ export const gifts: Gift[] = [
   'https://plus.unsplash.com/premium_photo-1725867721409-009dd5630f48?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   dynamicMessage: 'Contribuição para a Jack não levar o notebook na lua de mel',
   },
+  {
+  id: 'sua-escolha',
+  name: 'Sua escolha',
+  description: 'Tem algo especial que queira presentear? Essa é sua escolha',
+  price: 50,
+  imageUrl: 
+    'https://images.unsplash.com/photo-1707999558198-d5f93aafa75b?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  dynamicMessage: 'Sua escolha',
+  isCustomizable: true,
+  },
 ];
